@@ -1,85 +1,88 @@
 package stackpoint
 
 import (
-	"fmt"
-	"strconv"
-	"github.com/hashicorp/terraform/helper/schema"
+	"encoding/json"
 	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/hashicorp/terraform/helper/schema"
+	"log"
+	"strconv"
+	"time"
 )
 
 func resourceStackPointCluster() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceStackPointClusterCreate,
 		Read:   resourceStackPointClusterRead,
+		Update: resourceStackPointClusterUpdate,
 		Delete: resourceStackPointClusterDelete,
-		Schema: map[string]*schema.Schema {
+		Schema: map[string]*schema.Schema{
 			"org_id": {
-				Type: schema.TypeInt,
+				Type:     schema.TypeInt,
 				Required: true,
 			},
-			"name": {
-				Type:	schema.TypeString,
+			"cluster_name": {
+				Type:     schema.TypeString,
 				Required: true,
 			},
-			"provider": {
-				Type:	schema.TypeString,
+			"provider_name": {
+				Type:     schema.TypeString,
 				Required: true,
 			},
 			"provider_key": {
-				Type: schema.TypeInt,
+				Type:     schema.TypeInt,
 				Required: true,
 			},
 			"master_count": {
-				Type: schema.TypeInt,
+				Type:     schema.TypeInt,
 				Required: true,
 			},
 			"master_size": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 			},
 			"worker_count": {
-				Type: schema.TypeInt,
+				Type:     schema.TypeInt,
 				Required: true,
 			},
 			"worker_size": {
-				schema.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 			},
 			"region": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 			},
 			"k8s_version": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 			},
 			"rbac_enabled": {
-				Type: schema.TypeString,
+				Type:     schema.TypeBool,
 				Required: true,
 			},
 			"dashboard_enabled": {
-				Type: schema.TypeBool,
+				Type:     schema.TypeBool,
 				Required: true,
 			},
 			"etcd_type": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 			},
 			"platform": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 			},
 			"channel": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 			},
 			"ssh_keyset": {
-				Type: schema.TypeInt,
+				Type:     schema.TypeInt,
 				Required: true,
 			},
 			"solutions": {
 				Type:     schema.TypeList,
-				Elem: &schema.Schema{Type: schema.TypeString},
+				Elem:     &schema.Schema{Type: schema.TypeString},
 				Required: true,
 			},
 		},
@@ -87,9 +90,9 @@ func resourceStackPointCluster() *schema.Resource {
 }
 
 func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	newCluster := stackpointio.Cluster { 
-		Name: 		d.Get("name").(string),
-		Provider:          d.Get("provider").(string),
+	newCluster := stackpointio.Cluster{
+		Name:              d.Get("cluster_name").(string),
+		Provider:          d.Get("provider_name").(string),
 		ProviderKey:       d.Get("provider_key").(int),
 		MasterCount:       d.Get("master_count").(int),
 		MasterSize:        d.Get("master_size").(string),
@@ -103,24 +106,24 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 		Platform:          d.Get("platform").(string),
 		Channel:           d.Get("channel").(string),
 		SSHKeySet:         d.Get("ssh_keyset").(int),
-		Solutions:         []stackpointio.Solution{}
+		Solutions:         []stackpointio.Solution{},
 	}
-	client := meta.(stackpoint.APIClient)
+	client := meta.(*stackpointio.APIClient)
 	cluster, err := client.CreateCluster(d.Get("org_id").(int), newCluster)
 
 	reqJSON, _ := json.Marshal(newCluster)
-        resJSON, _ := json.Marshal(cluster)
+	resJSON, _ := json.Marshal(cluster)
 
-        log.Println("[DEBUG] Cluster create request", string(reqJSON))
-        log.Println("[DEBUG] Cluster create response", string(resJSON)
+	log.Println("[DEBUG] Cluster create request", string(reqJSON))
+	log.Println("[DEBUG] Cluster create response", string(resJSON))
 
 	// Don't bail until request and response are logged above
 	if err != nil {
 		return err
 	}
-// Use following code for solutions list:
-//	if nRaw, ok := d.GetOk("nic"); ok {
-//		nicRaw := nRaw.(*schema.Set).List()
+	// Use following code for solutions list:
+	//	if nRaw, ok := d.GetOk("nic"); ok {
+	//		nicRaw := nRaw.(*schema.Set).List()
 
 	// Wait until provisioned (until "state" is "running")
 	for i := 1; ; i++ {
@@ -129,7 +132,7 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 			return err
 		}
 		if state == "running" {
-			d.SetId(Itoa(cluster.ID))
+			d.SetId(strconv.Itoa(cluster.ID))
 			break
 		}
 		time.Sleep(time.Second)
@@ -138,12 +141,12 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceStackPointClusterRead(d *schema.ResourceData, meta interface{}) error {
-	clusterID, err := ParseUInt(d.Id(), 10, 64)
+	clusterID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return err
 	}
-	client := meta.(stackpoint.APIClient)
-	cluster, err := stackpoint.GetCluster(d.Get("org_id").(int), clusterID)
+	client := meta.(*stackpointio.APIClient)
+	cluster, err := client.GetCluster(d.Get("org_id").(int), clusterID)
 	if err != nil {
 		return err
 	}
@@ -152,7 +155,20 @@ func resourceStackPointClusterRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
+func resourceStackPointClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+        return nil                                             
+}
+
 func resourceStackPointClusterDelete(d *schema.ResourceData, meta interface{}) error {
+        clusterID, err := strconv.Atoi(d.Id())                                      
+        if err != nil {                                                               
+                return err                                                            
+        }                                                                             
+        client := meta.(*stackpointio.APIClient)                                      
+        err = client.DeleteCluster(d.Get("org_id").(int), clusterID)           
+        if err != nil {                                                               
+                return err                                                            
+        }
 	d.SetId("")
 	return nil
 }

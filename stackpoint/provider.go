@@ -1,6 +1,7 @@
 package stackpoint
 
 import (
+	"fmt"
 	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
@@ -31,11 +32,11 @@ func Provider() terraform.ResourceProvider {
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
-	if token, ok := d.GetOk("token"); !ok {
+	if _, ok := d.GetOk("token"); !ok {
 		return nil, fmt.Errorf("StackPoint token has not been provided.")
 	}
-	if endpoint, ok := d.GetOk("endpoint"); !ok {
+	if _, ok := d.GetOk("endpoint"); !ok {
 		return nil, fmt.Errorf("StackPoint endpoint has not been provided.")
 	}
-	return stackpointio.NewClient(token, endpoint), nil
+	return stackpointio.NewClient(d.Get("token").(string), d.Get("endpoint").(string)), nil
 }
