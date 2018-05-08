@@ -19,6 +19,7 @@ func resourceStackPointCluster() *schema.Resource {
 			"org_id": {
 				Type:     schema.TypeInt,
 				Required: true,
+				SuppressDiff: false,
 			},
 			"cluster_name": {
 				Type:     schema.TypeString,
