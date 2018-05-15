@@ -1,0 +1,19 @@
+resource "stackpoint_cluster" "my-cluster" {
+	org_id            = "${var.org_id}"
+        cluster_name      = "Test GKE Cluster TerraForm"
+        provider_name     = "${var.gke_code}"
+        provider_keyset   = "${var.gke_keyset}"
+	region            = "${var.gke_region}"
+        master_count      = "1"
+        master_size       = "n1-standard-1"
+        worker_count      = "2",
+        worker_size       = "n1-standard-1",
+        k8s_version       = "${var.gke_k8s_version}"
+        rbac_enabled      = true
+        dashboard_enabled = true
+        etcd_type         = "classic"
+        platform          = "${var.gke_platform}"
+        channel           = "stable"
+        ssh_keyset        = "${var.ssh_keyset}"
+	solutions	  = ["helm_tiller"]
+}

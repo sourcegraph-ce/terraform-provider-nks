@@ -1,0 +1,19 @@
+resource "stackpoint_cluster" "my-cluster" {
+	org_id                = "${var.org_id}"
+        cluster_name          = "Test DO Cluster TerraForm"
+        provider_name         = "${var.digitalocean_code}"
+        provider_keyset       = "${var.digitalocean_keyset}"
+	region                = "${var.digitalocean_region}"
+        master_count          = "1"
+        master_size           = "${var.digitalocean_master_size}"
+        worker_count          = "2"
+        worker_size           = "${var.digitalocean_worker_size}"
+        k8s_version           = "${var.digitalocean_k8s_version}"
+        rbac_enabled          = true
+        dashboard_enabled     = true
+        etcd_type             = "classic"
+        platform              = "${var.digitalocean_platform}"
+        channel               = "stable"
+        ssh_keyset            = "${var.ssh_keyset}"
+	solutions	      = ["helm_tiller"]
+}
