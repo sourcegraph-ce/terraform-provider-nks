@@ -9,8 +9,19 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"os"
 )
 
+const operationTimeout = 1200  // 20 minutes
+
+func outDebug(m string) {
+	f, err := os.OpenFile("/tmp/tf_debug.txt", os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+    		panic(err)
+	}
+	defer f.Close()
+	fmt.Fprintf(f, "%s", m)
+}
 func resourceStackPointCluster() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceStackPointClusterCreate,
@@ -30,6 +41,87 @@ func resourceStackPointCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+                        "master_count": {
+                                Type:     schema.TypeInt,
+                                Required: true,
+                        },
+                        "master_size": {
+                                Type:     schema.TypeString,
+                                Required: true,
+                        },
+                        "nodepool": {
+                                Type:     schema.TypeSet,
+                                Required: true,
+                                Elem: &schema.Resource{
+                                        Schema: map[string]*schema.Schema{
+						"local_id": {
+                                                        Type:     schema.TypeInt,
+                                                        Required: true,
+						},
+                                                "worker_size": {
+                                                        Type:     schema.TypeString,
+                                                        Required: true,
+                                                },
+                                                "worker_count": {
+                                                        Type:     schema.TypeInt,
+                                                        Required: true,
+                                                },
+                                                "name": {
+                                                        Type:     schema.TypeString,
+                                                        Computed: true,
+                                                },
+                                                "instance_id": {
+                                                        Type:     schema.TypeString,
+                                                        Computed: true,
+                                                },
+                                                "autoscaled": {
+                                                        Type:     schema.TypeBool,
+                                                        Computed: true,
+                                                },
+                                                "autoscale_min_count": {
+                                                        Type:     schema.TypeInt,
+                                                        Computed: true,
+                                                },
+                                                "autoscale_max_count": {
+                                                        Type:     schema.TypeInt,
+                                                        Computed: true,
+                                                },
+                                                "state": {
+                                                        Type:     schema.TypeString,
+                                                        Computed: true,
+                                                },
+                                        },
+                                },
+				Set: nodepoolHash,
+                        },
+                        "k8s_version": {
+                                Type:     schema.TypeString,
+                                Required: true,
+                        },
+                        "rbac_enabled": {
+                                Type:     schema.TypeBool,
+                                Required: true,
+                        },
+                        "dashboard_enabled": {
+                                Type:     schema.TypeBool,
+                                Required: true,
+                        },
+                        "etcd_type": {
+                                Type:     schema.TypeString,
+                                Required: true,
+                        },
+                        "platform": {
+                                Type:     schema.TypeString,
+                                Required: true,
+                        },
+                        "channel": {
+                                Type:     schema.TypeString,
+                                Required: true,
+                        },
+                        "ssh_keyset": {
+                                Type:     schema.TypeInt,
+                                Required: true,
+                        },
 			"instance_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -62,22 +154,6 @@ func resourceStackPointCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"master_count": {
-				Type:     schema.TypeInt,
-				Required: true,
-			},
-			"master_size": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-                        "worker_size": {
-                                Type:     schema.TypeString,
-                                Required: true,
-                        },
-			"worker_count": {
-				Type:     schema.TypeInt,
-				Required: true,
-			},
 			"region": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -86,6 +162,10 @@ func resourceStackPointCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"project_id": {
+                                Type:    schema.TypeString,
+                                Optional: true,
+                        },
 			"provider_resource_group": {
 				Type:	 schema.TypeString,
 				Optional: true,
@@ -106,38 +186,10 @@ func resourceStackPointCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"k8s_version": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"rbac_enabled": {
-				Type:     schema.TypeBool,
-				Required: true,
-			},
-			"dashboard_enabled": {
-				Type:     schema.TypeBool,
-				Required: true,
-			},
                         "dashboard_installed": {
                                 Type:     schema.TypeBool,
                                 Computed: true,
                         },
-			"etcd_type": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"platform": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"channel": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"ssh_keyset": {
-				Type:     schema.TypeInt,
-				Required: true,
-			},
 			"solutions": {
 				Type:     schema.TypeList,
 				Elem:     &schema.Schema{Type: schema.TypeString},
@@ -156,14 +208,46 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
         if err != nil {
                 return err
         }
-        // Validate worker node size
-        if !stackpointio.InstanceInList(mOptions, d.Get("worker_size").(string)) {
-                return fmt.Errorf("Invalid machine size for worker node: %s\n", d.Get("worker_size").(string))
+        // Grab worker node info from nodepool config
+        nodepoolList := d.Get("nodepool").(*schema.Set).List()
+	var workerSize string
+	var workerCount int
+outDebug(fmt.Sprintf("len(nodepoolList): %d\n", len(nodepoolList)))
+        for i, element := range nodepoolList {
+outDebug(fmt.Sprintf("In nodepool loop for creation, i=%d\n", i))
+                if i > 0 {
+                        return fmt.Errorf("Sorry, the StackPoint plugin only supports a single nodepool at creation time.")
+                }
+                elementMap := element.(map[string]interface{})
+                if elementMap["worker_size"] != nil {
+outDebug(fmt.Sprintf("In nodepool loop for creation, i=%d, worker_size=%s\n", i, elementMap["worker_size"].(string)))
+                        // Validate worker node size
+                        if !stackpointio.InstanceInList(mOptions, elementMap["worker_size"].(string)) {
+                                return fmt.Errorf("Invalid machine size for worker node: %s\n", elementMap["worker_size"].(string))
+                        }
+			workerSize = elementMap["worker_size"].(string)
+                }
+                if elementMap["worker_count"] != nil {
+outDebug(fmt.Sprintf("In nodepool loop for creation, i=%d, worker_count=%d\n", i, elementMap["worker_count"].(int)))
+			workerCount = elementMap["worker_count"].(int)
+                }
+        }
+        // Make sure we have workerSize and workerCount for cluster build
+	if workerSize == "" || workerCount == 0 {
+                return fmt.Errorf("Missing worker_size or worker_count.")
+        }
+        // Make sure at least 2 worker nodes (currently at least 2 worker nodes are required at creation)
+        if workerCount < 2 {
+                return fmt.Errorf("Need at least 2 worker nodes to create a cluster.")
         }
         // Validate master node size
         if !stackpointio.InstanceInList(mOptions, d.Get("master_size").(string)) {
                 return fmt.Errorf("Invalid machine size for master node: %s\n", d.Get("master_size").(string))
         }
+	// Make sure only single master (only single master allowed at creation time currently)
+	if d.Get("master_count").(int) > 1 {
+		return fmt.Errorf("Only a single master node is allowed at creation time currently.")
+	}
 	// Set up cluster structure based on input from user
 	newCluster := stackpointio.Cluster{
 		Name:              d.Get("cluster_name").(string),
@@ -171,8 +255,8 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 		ProviderKey:       d.Get("provider_keyset").(int),
 		MasterCount:       d.Get("master_count").(int),
 		MasterSize:        d.Get("master_size").(string),
-		WorkerCount:	   d.Get("worker_count").(int),
-		WorkerSize:	   d.Get("worker_size").(string),
+		WorkerCount:	   workerCount,
+		WorkerSize:	   workerSize,
 		KubernetesVersion: d.Get("k8s_version").(string),
 		RbacEnabled:       d.Get("rbac_enabled").(bool),
 		DashboardEnabled:  d.Get("dashboard_enabled").(bool),
@@ -208,8 +292,8 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 		newCluster.ProviderNetworkCdr = d.Get("provider_network_cidr").(string)
 		newCluster.ProviderSubnetID = d.Get("provider_subnet_id").(string)
 		newCluster.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
-	} else if d.Get("provider_name").(string) == "do" || 
-		d.Get("provider_name").(string) == "gce" || d.Get("provider_name").(string) == "gke" {
+	} else if d.Get("provider_name").(string) == "do" || d.Get("provider_name").(string) == "gce" || 
+		d.Get("provider_name").(string) == "gke" {
                 if _, ok := d.GetOk("region"); !ok {
                         return fmt.Errorf("StackPoint needs region for DigitalOcean/GCE/GKE clusters.")
                 }
@@ -239,7 +323,17 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
                 newCluster.ProviderNetworkCdr = d.Get("provider_network_cidr").(string)
                 newCluster.ProviderSubnetID = d.Get("provider_subnet_id").(string)
                 newCluster.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
-        }
+        } else if d.Get("provider_name").(string) == "packet" {
+                if _, ok := d.GetOk("region"); !ok {
+                        return fmt.Errorf("StackPoint needs region for Packet clusters.")
+                }
+                if _, ok := d.GetOk("project_id"); !ok {
+                        return fmt.Errorf("StackPoint needs project_id for Packet clusters.")
+                }
+                newCluster.Region = d.Get("region").(string)
+		newCluster.ProjectID = d.Get("provider_id").(string)
+	}
+	
 	// Do cluster creation call
 	cluster, err := client.CreateCluster(d.Get("org_id").(int), newCluster)
 
@@ -289,6 +383,27 @@ func resourceStackPointClusterRead(d *schema.ResourceData, meta interface{}) err
   	d.Set("provider_keyset", cluster.ProviderKey)
   	d.Set("provider_keyset_name", cluster.ProviderKeyName)
   	d.Set("region", cluster.Region)
+	if v, ok := d.GetOk("zone"); ok {
+		d.Set("zone", v.(string))
+	}
+	if v, ok := d.GetOk("project_id"); ok {
+		d.Set("project_id", v.(string))
+	}
+	if v, ok := d.GetOk("provider_resource_group"); ok {
+        	d.Set("provider_resource_group", v.(string))
+	}
+	if v, ok := d.GetOk("provider_network_id"); ok {
+        	d.Set("provider_network_id", v.(string))
+	}
+	if v, ok := d.GetOk("provider_network_cidr"); ok {
+        	d.Set("provider_network_cidr", v.(string))
+	}
+	if v, ok := d.GetOk("provider_subnet_id"); ok {
+        	d.Set("provider_subnet_id", v.(string))
+	}
+	if v, ok := d.GetOk("provider_subnet_cidr"); ok {
+        	d.Set("provider_subnet_cidr", v.(string))
+	}
   	d.Set("owner", cluster.Owner)
   	d.Set("notified", cluster.Notified)
   	d.Set("k8s_version", cluster.KubernetesVersion)
@@ -304,11 +419,21 @@ func resourceStackPointClusterRead(d *schema.ResourceData, meta interface{}) err
   	d.Set("channel", cluster.Channel)
   	d.Set("user_ssh_keyset", cluster.SSHKeySet)
 
+	// Collect solutions for TF state
 	var solArray []string
 	for _, sol := range cluster.Solutions {
 		solArray = append(solArray, sol.Solution)
 	}
 	d.Set("solutions", solArray)
+
+	// Collect nodepool info from cluster
+        nps, err := client.GetNodePools(d.Get("org_id").(int), clusterID)
+        if err != nil {
+                return err
+        }
+        nodepoolMap := nodepoolsToMap(nps)
+	d.Set("nodepool", nodepoolMap)
+
 	return nil
 }
 
@@ -320,13 +445,14 @@ func resourceStackPointClusterUpdate(d *schema.ResourceData, meta interface{}) e
         client := meta.(*stackpointio.APIClient)
 
 	if d.HasChange("master_count") {
-		oldV, newV := d.GetChange("worker_count")
+		oldV, newV := d.GetChange("master_count")
+		oldVi, newVi := oldV.(int), newV.(int)
 
 		// Only allow 1 master to be deleted or added at a time (could change this if API will handle it)
-		if oldV.(int) > newV.(int) {
+		if oldVi > newVi {
 			// User asks to reduce master count
 			// Only allow 1 master to be deleted at a time (could change this if API will handle it)
-			if (oldV.(int) - newV.(int)) > 1 {
+			if (oldVi - newVi) > 1 {
 				return fmt.Errorf("Only a single reduction to master count is allowed at this time.")
 			}
 			nodes, err := client.GetNodes(d.Get("org_id").(int), clusterID)
@@ -348,15 +474,17 @@ func resourceStackPointClusterUpdate(d *schema.ResourceData, meta interface{}) e
                                                         nodes[i].ID)
                                                 return err
                                         }
-					// Allow some time before eventual state read call
-					time.Sleep(10)
+                                        // Wait for node to delete
+                                        if err = client.WaitNodeDeleted(d.Get("org_id").(int), clusterID, nodes[i].ID); err != nil {
+                                                return err
+                                        }
                                         break
                                 }
 			}
 		} else {
                         // User asks to increase master count
 			// Only allow 1 master to be added at a time (could change this if API will handle it)
-                        if (newV.(int) - oldV.(int)) > 1 {
+                        if (newVi - oldVi) > 1 {
                                 return fmt.Errorf("Only a single addition to master count is allowed at this time.")
                         }
         		// Set up new master node
@@ -389,82 +517,43 @@ func resourceStackPointClusterUpdate(d *schema.ResourceData, meta interface{}) e
                                         return err
                                 }
                         }
-			// Allow some time before eventual state read call
-			time.Sleep(10)
                 }
 	}
-	if d.HasChange("worker_count") {
-		oldV, newV := d.GetChange("worker_count")
-
-		// Don't allow worker count to reduce to less than 1
-		if newV.(int) < 1 {
-                        return fmt.Errorf("Cannot reduce to less than 1 worker node.")
+	if d.HasChange("nodepool") {
+outDebug(fmt.Sprintf("In nodepool has change\n"))
+                oldV, newV := d.GetChange("nodepool")
+                oldVSet, newVSet := oldV.(*schema.Set), newV.(*schema.Set)
+                nodepoolsToAdd := newVSet.Difference(oldVSet)
+                nodepoolsToRemove := oldVSet.Difference(newVSet)
+                for i, rawNP := range nodepoolsToAdd.List() {
+outDebug(fmt.Sprintf("In nodepoolToAdd, i=%d\n", i))
+                        rawNPMap := rawNP.(map[string]interface{})
+outDebug(fmt.Sprintf("rawNPMap[worker_count]: %d\n", rawNPMap["worker_count"].(int)))
+			newNodepool := stackpointio.NodePool {
+				Name: fmt.Sprintf("TerraForm NodePool %d", i + 1),
+				NodeCount: rawNPMap["worker_count"].(int),
+				Size:      rawNPMap["worker_size"].(string),
+				Platform:  d.Get("platform").(string),
+			}
+			// Create new nodepool
+			pool, err := client.CreateNodePool(d.Get("org_id").(int), clusterID, newNodepool)
+			if err != nil {
+				log.Fatal(err)
+			}
+			client.WaitNodePoolProvisioned(d.Get("org_id").(int), clusterID, pool.ID)
                 }
-		if oldV.(int) > newV.(int) {
-			// User asks to reduce worker count, get list of nodes
-			nodes, err := client.GetNodes(d.Get("org_id").(int), clusterID)
-        		if err != nil {
-				log.Println("[DEBUG] Cluster update got error when getting node list")
-                		return err
-        		}
-		        if len(nodes) == 0 {
-                		return fmt.Errorf("No nodes found to reduce worker count.")
-        		}
-			num_nodes_deleted := 0
-		        for i := 0; i < len(nodes); i++ {
-				// Sort nodes by worker class and running state
-				if nodes[i].Role == "worker" && nodes[i].State == "running" {
-					if err := client.DeleteNode(d.Get("org_id").(int), clusterID, nodes[i].ID); err != nil {
-						log.Printf("[DEBUG] Cluster update got error when deleting node at ID: %d\n", 
-							nodes[i].ID)
-						return err
-					}
-					// Pause for a couple seconds for node state to reflect that it's deleting
-					time.Sleep(10)
-					num_nodes_deleted = num_nodes_deleted + 1
-					if oldV.(int) - newV.(int) - num_nodes_deleted == 0 {
-						// Number of nodes deleted should be reached now
-						break;
-					} 
-				}
-			}
-			if oldV.(int) - newV.(int) - num_nodes_deleted != 0 {
-				return fmt.Errorf("Error deleting nodes, node count is off after deletion")
-			}
-		} else {
-			// User asks to increase worker count, get nodepool list, add to first available one
-		        nps, err := client.GetNodePools(d.Get("org_id").(int), clusterID)
-        		if err != nil {
-				log.Println("[DEBUG] Cluster update got error when getting nodepool list")
-                		return err
-        		}
-        		if len(nps) == 0 {
-				// No nodepools found to add to, throw error
-                		return fmt.Errorf("No nodepools found to add worker node to")
-        		}
-			// Make sure nodepool exists and is active
-                	//if nps[0].State != "active" {
-				//return fmt.Errorf("No active nodepools found")
-			//}
-        		newNode := stackpointio.NodeAddToPool {
-				Count:      (newV.(int) - oldV.(int)),
-                		Role:       "worker",
-                		NodePoolID:  nps[0].ID,
-			}
-			log.Printf("[DEBUG] Cluster update attempting to add %d worker node(s)\n", (newV.(int) - oldV.(int)))
-        		nodes, err := client.AddNodesToNodePool(d.Get("org_id").(int), clusterID, nps[0].ID, newNode)
-        		if err != nil {
-                		return err
-        		}
-			for _, node := range nodes {
-				if err := client.WaitNodeProvisioned(d.Get("org_id").(int), clusterID, node.ID); err != nil {
-					return err
-				}
-			}
-			// Pause for a couple seconds for new node to appear
-			time.Sleep(10)
-		}
+                for i, rawNP := range nodepoolsToRemove.List() {
+			// Currently impossible to delete nodepools, so just log this for now
+			log.Println("[DEBUG] Cluster update attempting to add master node\n")
+outDebug(fmt.Sprintf("In nodepoolToRemove, i=%d\n", i))
+                        rawNPMap := rawNP.(map[string]interface{})
+outDebug(fmt.Sprintf("rawNPMap[worker_count]: %d\n", rawNPMap["worker_count"].(int)))
+outDebug(fmt.Sprintf("rawNPMap[instance_id]: %d\n", rawNPMap["instance_id"].(string)))
+                }
         }
+	if d.HasChange("worker_count") {
+outDebug(fmt.Sprintf("In worker_count has change???????\n"))
+	}
 	if d.HasChange("solutions") {
 		_, newV := d.GetChange("solutions")
 		userIntList := newV.([]interface{})
@@ -487,7 +576,7 @@ func resourceStackPointClusterUpdate(d *schema.ResourceData, meta interface{}) e
 				if err := client.DeleteSolution(d.Get("org_id").(int), clusterID, sol.ID); err != nil {
 					return err
 				}
-				// Pause for a few seconds for solution deletion to report
+				// Pause for a few seconds for solution deletion to report (no way to wait for state on this)
 				time.Sleep(10)
 			} else {
 				configuredSols = append(configuredSols, sol.Solution)
@@ -498,12 +587,12 @@ func resourceStackPointClusterUpdate(d *schema.ResourceData, meta interface{}) e
 			if !stackpointio.StringInSlice(sol, configuredSols) {
                                 // Solution not in cluster, needs to be added
         			newSolution := stackpointio.Solution { Solution: sol }
-				_, err := client.AddSolution(d.Get("org_id").(int), clusterID, newSolution);
+				solution, err := client.AddSolution(d.Get("org_id").(int), clusterID, newSolution);
 				if err != nil {
                                         return err
                                 }
-				// Pause for a few seconds to let new solution show up before state read call
-				time.Sleep(10)
+				// Wait until installed
+				client.WaitSolutionInstalled(d.Get("org_id").(int), clusterID, solution.ID)
 				log.Printf("[DEBUG] Added solution %s\n", sol)
                         }
 		}
@@ -517,10 +606,38 @@ func resourceStackPointClusterDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 	client := meta.(*stackpointio.APIClient)
-	err = client.DeleteCluster(d.Get("org_id").(int), clusterID)
-	if err != nil {
+	if err = client.DeleteCluster(d.Get("org_id").(int), clusterID); err != nil {
 		return err
 	}
+	if err = client.WaitClusterDeleted(d.Get("org_id").(int), clusterID); err != nil {
+		return err
+	}
+        log.Println("[DEBUG] Cluster deletion complete")
 	d.SetId("")
 	return nil
+}
+
+func nodepoolsToMap(nps []stackpointio.NodePool) []map[string]interface{} {
+        nodepoolMap := make([]map[string]interface{}, len(nps))
+        for i, np := range nps {
+outDebug(fmt.Sprintf("In nodepoolsToMap loop, i=%d, np.Name=%s, np.InstanceID=%s, np.NodeCount=%d\n", i, np.Name, np.InstanceID, np.NodeCount))
+                nodepoolMap[i] = map[string]interface{} {
+                        // local_id will start on 1, so increase i by 1
+                        "local_id": i+1,
+                        "name": np.Name,
+                        "instance_id": np.InstanceID,
+                        "autoscaled": np.Autoscaled,
+                        "autoscale_min_count": np.MinCount,
+                        "autoscale_max_count": np.MaxCount,
+                        "worker_count": np.NodeCount,
+                        "worker_size": np.Size,
+                        "state": np.State,
+                }
+        }
+	return nodepoolMap
+}
+
+func nodepoolHash(v interface{}) int {
+	m := v.(map[string]interface{})
+	return m["local_id"].(int)
 }
