@@ -1,14 +1,3 @@
-# StackPoint configuration variables
-variable "org_id" {
-  description = "StackPoint organization ID"
-  default     = "111"
-}
-
-variable "ssh_keyset" {
-  description = "StackPoint SSH keyset ID"
-  default     = "3524"
-}
-
 # AWS configuration variables
 variable "aws_code" {
   description = "AWS cluster type code"
@@ -17,7 +6,7 @@ variable "aws_code" {
 
 variable "aws_keyset" {
   description = "AWS keyset ID"
-  default     = "3625"
+  default     = 3625
 }
 
 variable "aws_k8s_version" {
@@ -62,12 +51,12 @@ variable "aws_subnet_cidr" {
 
 variable "aws_master_size" {
   description = "AWS master node size"
-  default     = "standard_f1"
+  default     = "t2.medium"
 }
 
 variable "aws_worker_size" {
   description = "AWS worker node size"
-  default     = "standard_f1"
+  default     = "t2.medium"
 }
 
 # Azure configuration variables
@@ -78,7 +67,7 @@ variable "azure_code" {
 
 variable "azure_keyset" {
   description = "Azure keyset ID"
-  default     = "1671"
+  default     = 1671
 }
 
 variable "azure_k8s_version" {
@@ -139,7 +128,7 @@ variable "digitalocean_code" {
 
 variable "digitalocean_keyset" {
   description = "DigitalOcean keyset ID"
-  default     = "3556"
+  default     = 3556
 }
 
 variable "digitalocean_k8s_version" {
@@ -175,7 +164,7 @@ variable "gce_code" {
 
 variable "gce_keyset" {
   description = "GCE keyset ID"
-  default     = "3553"
+  default     = 3553
 }
 
 variable "gce_k8s_version" {
@@ -211,11 +200,11 @@ variable "gke_code" {
 
 variable "gke_keyset" {
   description = "GKE keyset ID"
-  default     = "1797"
+  default     = 1797
 }
 
 variable "gke_k8s_version" {
-  description = "GCE kubernetes version"
+  description = "GKE kubernetes version"
   default     = "latest"
 }
 
@@ -225,7 +214,7 @@ variable "gke_platform" {
 }
 
 variable "gke_region" {
-  description = "GCE region"
+  description = "GKE region"
   default     = "us-west1-a"
 }
 
@@ -237,4 +226,45 @@ variable "gke_master_size" {
 variable "gke_worker_size" {
   description = "GKE worker node size"
   default     = "n1-standard-1"
+}
+
+# Packet configuration variables
+variable "packet_code" {
+  description = "Packet cluster type code"
+  default     = "packet"
+}
+
+variable "packet_keyset" {
+  description = "Packet keyset ID"
+  default     = 3880
+}
+
+variable "packet_k8s_version" {
+  description = "Packet kubernetes version"
+  default     = "v1.8.7"
+}
+
+variable "packet_platform" {
+  description = "Packet platform type"
+  default     = "coreos"
+}
+
+variable "packet_region" {
+  description = "Packet region"
+  default     = "sjc1"
+}
+
+variable "packet_project_id" {
+  description = "Packet project ID"
+  default     = "93125c2a-8b78-4d4f-a3c4-7367d6b7cca8"
+}
+
+variable "packet_master_size" {
+  description = "Packet master node size"
+  default     = "baremetal_0"
+}
+
+variable "packet_worker_size" {
+  description = "Packet worker node size"
+  default     = "baremetal_0"
 }

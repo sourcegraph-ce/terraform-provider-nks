@@ -1,19 +1,45 @@
-resource "stackpoint_cluster" "my-cluster" {
-	org_id                = "${var.org_id}"
-        cluster_name          = "Test DO Cluster TerraForm"
-        provider_name         = "${var.digitalocean_code}"
-        provider_keyset       = "${var.digitalocean_keyset}"
-	region                = "${var.digitalocean_region}"
-        master_count          = "1"
-        master_size           = "${var.digitalocean_master_size}"
-        worker_count          = "2"
-        worker_size           = "${var.digitalocean_worker_size}"
-        k8s_version           = "${var.digitalocean_k8s_version}"
-        rbac_enabled          = true
-        dashboard_enabled     = true
-        etcd_type             = "classic"
-        platform              = "${var.digitalocean_platform}"
-        channel               = "stable"
-        ssh_keyset            = "${var.ssh_keyset}"
-	solutions	      = ["helm_tiller"]
+provider "stackpoint" {
+  org_id     = 111
+  ssh_keyset = 3524
 }
+
+data "stackpoint_instance_specs" "master-specs" {
+  provider_code = "${var.digitalocean_code}"
+  node_size     = "${var.digitalocean_master_size}"
+}
+
+data "stackpoint_instance_specs" "worker-specs" {
+  provider_code = "${var.digitalocean_code}"
+  node_size     = "${var.digitalocean_worker_size}"
+}
+
+resource "stackpoint_cluster" "terraform-cluster" {
+  cluster_name         = "Test DO Cluster TerraForm"
+  provider_code        = "${var.digitalocean_code}"
+  provider_keyset      = "${var.digitalocean_keyset}"
+  region               = "${var.digitalocean_region}"
+  k8s_version          = "${var.digitalocean_k8s_version}"
+  startup_master_size  = "${data.stackpoint_instance_specs.master-specs.node_size}"
+  startup_worker_count = 2
+  startup_worker_size  = "${data.stackpoint_instance_specs.worker-specs.node_size}"
+  rbac_enabled         = true
+  dashboard_enabled    = true
+  etcd_type            = "classic"
+  platform             = "${var.digitalocean_platform}"
+  channel              = "stable"
+  solutions            = ["helm_tiller"]
+}
+
+#resource "stackpoint_master_node" "master2" {
+#  cluster_id    = "${stackpoint_cluster.terraform-cluster.id}"
+#  provider_code = "${var.digitalocean_code}"
+#  platform      = "${var.digitalocean_platform}"
+#  node_size     = "${data.stackpoint_instance_specs.master-specs.node_size}"
+#}
+
+#resource "stackpoint_nodepool" "nodepool2" {
+#  cluster_id   = "${stackpoint_cluster.terraform-cluster.id}"
+#  platform   = "${var.digitalocean_platform}"
+#  worker_count = 1
+#  worker_size  = "${data.stackpoint_instance_specs.worker-specs.node_size}"
+#}

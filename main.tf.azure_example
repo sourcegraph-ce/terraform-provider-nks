@@ -1,25 +1,54 @@
-resource "stackpoint_cluster" "my-cluster" {
-	org_id                = "${var.org_id}"
-        cluster_name          = "Test AWS Cluster TerraForm 2"
-        provider_name         = "${var.azure_code}"
-        provider_keyset       = "${var.azure_keyset}"
-	region                = "${var.azure_region}"
-	zone		      = "${var.azure_zone}"
-	provider_resource_group = "${var.azure_resource_group}"
-	provider_network_id   = "${var.azure_network_id}" 
-	provider_network_cidr = "${var.azure_network_cidr}"
-	provider_subnet_id    = "${var.azure_subnet_id}"
-	provider_subnet_cidr  = "${var.azure_subnet_cidr}"
-        master_count          = "1"
-        master_size           = "${var.azure_master_size}"
-        worker_count          = "2"
-        worker_size           = "${var.azure_worker_size}"
-        k8s_version           = "${var.azure_k8s_version}"
-        rbac_enabled          = true
-        dashboard_enabled     = true
-        etcd_type             = "classic"
-        platform              = "${var.azure_platform}"
-        channel               = "stable"
-        ssh_keyset            = "${var.ssh_keyset}"
-	solutions	      = ["helm_tiller"]
+provider "stackpoint" {
+  org_id     = 4
+  ssh_keyset = 66
 }
+
+data "stackpoint_instance_specs" "master-specs" {
+  provider_code = "${var.azure_code}"
+  node_size     = "${var.azure_master_size}"
+}
+
+data "stackpoint_instance_specs" "worker-specs" {
+  provider_code = "${var.azure_code}"
+  node_size     = "${var.azure_worker_size}"
+}
+
+resource "stackpoint_cluster" "terraform-cluster" {
+  cluster_name            = "Test Azure Cluster TerraForm"
+  provider_code           = "${var.azure_code}"
+  provider_keyset         = "${var.azure_keyset}"
+  region                  = "${var.azure_region}"
+  k8s_version             = "${var.azure_k8s_version}"
+  startup_master_size     = "${data.stackpoint_instance_specs.master-specs.node_size}"
+  startup_worker_count    = 2
+  startup_worker_size     = "${data.stackpoint_instance_specs.worker-specs.node_size}"
+  region                  = "${var.azure_region}"
+  provider_resource_group = "${var.azure_resource_group}"
+#  provider_network_id     = "${var.azure_network_id}"   // These can default to __new__, then master nodes can pick up their values
+#  provider_network_cidr   = "${var.azure_network_cidr}"
+#  provider_subnet_id      = "${var.azure_subnet_id}"
+#  provider_subnet_cidr    = "${var.azure_subnet_cidr}"
+  rbac_enabled            = true
+  dashboard_enabled       = true
+  etcd_type               = "classic"
+  platform                = "${var.azure_platform}"
+  channel                 = "stable"
+  solutions               = ["helm_tiller"]
+}
+
+#resource "stackpoint_master_node" "master2" {
+#  cluster_id           = "${stackpoint_cluster.terraform-cluster.id}"
+#  provider_code        = "${var.azure_code}"
+#  platform             = "${var.azure_platform}"
+#  provider_subnet_id   = "${stackpoint_cluster.terraform-cluster.provider_subnet_id}"
+#  provider_subnet_cidr = "${stackpoint_cluster.terraform-cluster.provider_subnet_cidr}"
+#  node_size            = "${data.stackpoint_instance_specs.master-specs.node_size}"
+#}
+
+#resource "stackpoint_nodepool" "nodepool2" {
+#  cluster_id           = "${stackpoint_cluster.terraform-cluster.id}"
+#  provider_code        = "${var.azure_code}"
+#  worker_count         = 1
+#  worker_size          = "${data.stackpoint_instance_specs.worker-specs.node_size}"
+#}
+
