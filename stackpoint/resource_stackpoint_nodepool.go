@@ -239,7 +239,7 @@ func resourceStackPointNodePoolDelete(d *schema.ResourceData, meta interface{}) 
 	}
 	for i := 0; i < len(nodes); i++ {
 		// Delete node if active
-		if nodes[i].State == config.Client.NodeRunningStateString {
+		if nodes[i].State == stackpointio.NodeRunningStateString {
 			outDebug(fmt.Sprintf("In nodepooldelete, deleting node.ID: %d\n", nodes[i].ID))
 			if err = config.Client.DeleteNode(config.OrgID, clusterID, nodes[i].ID); err != nil {
 				return err

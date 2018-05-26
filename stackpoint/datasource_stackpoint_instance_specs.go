@@ -18,6 +18,10 @@ func dataSourceStackPointInstanceSpecs() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+                        "endpoint": {
+                                Type:     schema.TypeString,
+                                Optional: true,
+                        },
 		},
 	}
 }
@@ -26,7 +30,7 @@ func dataSourceStackPointInstanceSpecsRead(d *schema.ResourceData, meta interfac
 	config := meta.(*Config)
 
 	// Grab machine size values for provider
-	mOptions, err := config.Client.GetInstanceSpecs(d.Get("provider_code").(string))
+	mOptions, err := config.Client.GetInstanceSpecs(d.Get("provider_code").(string), d.Get("endpoint").(string))
 	if err != nil {
 		return err
 	}

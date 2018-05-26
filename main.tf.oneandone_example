@@ -1,0 +1,46 @@
+provider "stackpoint" {
+  org_id     = 111
+  ssh_keyset = 3524
+}
+
+data "stackpoint_instance_specs" "master-specs" {
+  provider_code = "${var.oneandone_code}"
+  node_size     = "${var.oneandone_master_size}"
+}
+
+data "stackpoint_instance_specs" "worker-specs" {
+  provider_code = "${var.oneandone_code}"
+  node_size     = "${var.oneandone_worker_size}"
+}
+
+resource "stackpoint_cluster" "terraform-cluster" {
+  cluster_name          = "Test OneAndOne Cluster TerraForm"
+  provider_code         = "${var.oneandone_code}"
+  provider_keyset       = "${var.oneandone_keyset}"
+  region                = "${var.oneandone_region}"
+  k8s_version           = "${var.oneandone_k8s_version}"
+  startup_master_size   = "${data.stackpoint_instance_specs.master-specs.node_size}"
+  startup_worker_count  = 2
+  startup_worker_size   = "${data.stackpoint_instance_specs.worker-specs.node_size}"
+  rbac_enabled          = true
+  dashboard_enabled     = true
+  etcd_type             = "classic"
+  platform              = "${var.oneandone_platform}"
+  channel               = "stable"
+  solutions             = ["helm_tiller"]
+}
+
+resource "stackpoint_master_node" "master2" {
+  cluster_id           = "${stackpoint_cluster.terraform-cluster.id}"
+  provider_code        = "${var.oneandone_code}"
+  platform             = "${var.oneandone_platform}"
+  node_size            = "${data.stackpoint_instance_specs.master-specs.node_size}"
+}
+
+resource "stackpoint_nodepool" "nodepool2" {
+  cluster_id           = "${stackpoint_cluster.terraform-cluster.id}"
+  provider_code        = "${var.oneandone_code}"
+  platform             = "${var.oneandone_platform}"
+  worker_count         = 3
+  worker_size          = "${data.stackpoint_instance_specs.worker-specs.node_size}"
+}

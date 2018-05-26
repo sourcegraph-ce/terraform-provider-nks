@@ -16,6 +16,7 @@
 .terraform
 crash.log
 main.tf
+variables.tf.LOCAL
 terraform-provider-stackpoint
 terraform.tfstate
 terraform.tfstate.backup

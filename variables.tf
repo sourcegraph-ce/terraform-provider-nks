@@ -6,7 +6,7 @@ variable "aws_code" {
 
 variable "aws_keyset" {
   description = "AWS keyset ID"
-  default     = 3625
+  default     = # YOUR ID HERE
 }
 
 variable "aws_k8s_version" {
@@ -31,7 +31,7 @@ variable "aws_zone" {
 
 variable "aws_network_id" {
   description = "AWS network ID"
-  default     = "vpc-14ca497c"
+  default     = # YOUR ID HERE
 }
 
 variable "aws_network_cidr" {
@@ -41,7 +41,7 @@ variable "aws_network_cidr" {
 
 variable "aws_subnet_id" {
   description = "AWS subnet ID"
-  default     = "subnet-f4295c9c"
+  default     = # YOUR ID HERE
 }
 
 variable "aws_subnet_cidr" {
@@ -67,7 +67,7 @@ variable "azure_code" {
 
 variable "azure_keyset" {
   description = "Azure keyset ID"
-  default     = 1671
+  default     = # YOUR ID HERE
 }
 
 variable "azure_k8s_version" {
@@ -87,12 +87,12 @@ variable "azure_region" {
 
 variable "azure_resource_group" {
   description = "Azure resource group"
-  default     = "__new__"
+  default     = # YOUR ID HERE
 }
 
 variable "azure_network_id" {
   description = "Azure network ID"
-  default     = "__new__"
+  default     = # YOUR ID HERE
 }
 
 variable "azure_network_cidr" {
@@ -102,7 +102,7 @@ variable "azure_network_cidr" {
 
 variable "azure_subnet_id" {
   description = "Azure subnet ID"
-  default     = "__new__"
+  default     = # YOUR ID HERE
 }
 
 variable "azure_subnet_cidr" {
@@ -128,7 +128,7 @@ variable "digitalocean_code" {
 
 variable "digitalocean_keyset" {
   description = "DigitalOcean keyset ID"
-  default     = 3556
+  default     = # YOUR ID HERE
 }
 
 variable "digitalocean_k8s_version" {
@@ -164,7 +164,7 @@ variable "gce_code" {
 
 variable "gce_keyset" {
   description = "GCE keyset ID"
-  default     = 3553
+  default     = # YOUR ID HERE
 }
 
 variable "gce_k8s_version" {
@@ -200,7 +200,7 @@ variable "gke_code" {
 
 variable "gke_keyset" {
   description = "GKE keyset ID"
-  default     = 1797
+  default     = # YOUR ID HERE
 }
 
 variable "gke_k8s_version" {
@@ -227,6 +227,41 @@ variable "gke_worker_size" {
   description = "GKE worker node size"
   default     = "n1-standard-1"
 }
+# OneAndOne configuration variables
+variable "oneandone_code" {
+  description = "OneAndOne cluster type code"
+  default     = "oneandone"
+}
+
+variable "oneandone_keyset" {
+  description = "OneAndOne keyset ID"
+  default     = # YOUR ID HERE
+}
+
+variable "oneandone_k8s_version" {
+  description = "OneAndOne kubernetes version"
+  default     = "v1.8.7"
+}
+
+variable "oneandone_platform" {
+  description = "OneAndOne platform type"
+  default     = "coreos"
+}
+
+variable "oneandone_region" {
+  description = "OneAndOne region"
+  default     = "US"
+}
+
+variable "oneandone_master_size" {
+  description = "OneAndOne master node size"
+  default     = "m"
+}
+
+variable "oneandone_worker_size" {
+  description = "OneAndOne worker node size"
+  default     = "m"
+}
 
 # Packet configuration variables
 variable "packet_code" {
@@ -236,7 +271,7 @@ variable "packet_code" {
 
 variable "packet_keyset" {
   description = "Packet keyset ID"
-  default     = 3880
+  default     = # YOUR ID HERE
 }
 
 variable "packet_k8s_version" {
@@ -256,7 +291,7 @@ variable "packet_region" {
 
 variable "packet_project_id" {
   description = "Packet project ID"
-  default     = "93125c2a-8b78-4d4f-a3c4-7367d6b7cca8"
+  default     = # YOUR ID HERE
 }
 
 variable "packet_master_size" {

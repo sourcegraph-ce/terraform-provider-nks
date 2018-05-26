@@ -13,7 +13,7 @@ import (
 )
 
 func outDebug(m string) {
-	f, err := os.OpenFile("/tmp/tf_debug.txt", os.O_APPEND|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("/tmp/tf_debug.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		panic(err)
 	}
@@ -199,7 +199,7 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 		newCluster.ProviderNetworkCdr = d.Get("provider_network_cidr").(string)
 		newCluster.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
 	} else if d.Get("provider_code").(string) == "do" || d.Get("provider_code").(string) == "gce" ||
-		d.Get("provider_code").(string) == "gke" {
+		d.Get("provider_code").(string) == "gke" || d.Get("provider_code").(string) == "oneandone" {
 		if _, ok := d.GetOk("region"); !ok {
 			return fmt.Errorf("StackPoint needs region for DigitalOcean/GCE/GKE clusters.")
 		}
