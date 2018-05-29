@@ -1,10 +1,11 @@
 package stackpoint
 
 import (
+	"fmt"
 	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"fmt"
+	"time"
 )
 
 // Provider returns a schema.Provider for StackPoint
@@ -59,4 +60,11 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		SSHKeyset: d.Get("ssh_keyset").(int),
 	}
 	return &config, nil
+}
+
+var resourceDefaultTimeouts = schema.ResourceTimeout{
+	Create:  schema.DefaultTimeout(30 * time.Minute),
+	Update:  schema.DefaultTimeout(30 * time.Minute),
+	Delete:  schema.DefaultTimeout(30 * time.Minute),
+	Default: schema.DefaultTimeout(30 * time.Minute),
 }

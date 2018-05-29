@@ -17,6 +17,7 @@
 crash.log
 main.tf
 variables.tf.LOCAL
+variables.tf_safe
 terraform-provider-stackpoint
 terraform.tfstate
 terraform.tfstate.backup

@@ -18,10 +18,10 @@ func dataSourceStackPointInstanceSpecs() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-                        "endpoint": {
-                                Type:     schema.TypeString,
-                                Optional: true,
-                        },
+			"endpoint": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }

@@ -16,6 +16,10 @@ func resourceStackPointMasterNode() *schema.Resource {
 		Update: resourceStackPointMasterNodeUpdate,
 		Delete: resourceStackPointMasterNodeDelete,
 		Schema: map[string]*schema.Schema{
+			"cluster_id": {
+				Type:     schema.TypeInt,
+				Required: true,
+			},
 			"node_size": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -26,16 +30,16 @@ func resourceStackPointMasterNode() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-                        "provider_code": {
-                                Type:     schema.TypeString,
-                                Required: true,
-                                ForceNew: true,
-                        },
-                        "zone": {
-                                Type:     schema.TypeString,
-                                Optional: true,
-                                ForceNew: true,
-                        },
+			"provider_code": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+			"zone": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 			"provider_subnet_id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -66,9 +70,9 @@ func resourceStackPointMasterNode() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"cluster_id": {
+			"timeout": {
 				Type:     schema.TypeInt,
-				Required: true,
+				Optional: true,
 			},
 		},
 	}
@@ -106,7 +110,11 @@ func resourceStackPointMasterNodeCreate(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
-	if err := config.Client.WaitNodeProvisioned(config.OrgID, clusterID, nodes[0].ID); err != nil {
+	timeout := int(d.Timeout("Create").Seconds())
+	if v, ok := d.GetOk("timeout"); ok {
+		timeout = v.(int)
+	}
+	if err := config.Client.WaitNodeProvisioned(config.OrgID, clusterID, nodes[0].ID, timeout); err != nil {
 		return err
 	}
 
@@ -162,7 +170,11 @@ func resourceStackPointMasterNodeDelete(d *schema.ResourceData, meta interface{}
 	if err = config.Client.DeleteNode(config.OrgID, clusterID, nodeID); err != nil {
 		return err
 	}
-	if err = config.Client.WaitNodeDeleted(config.OrgID, clusterID, nodeID); err != nil {
+	timeout := int(d.Timeout("Delete").Seconds())
+	if v, ok := d.GetOk("timeout"); ok {
+		timeout = v.(int)
+	}
+	if err = config.Client.WaitNodeDeleted(config.OrgID, clusterID, nodeID, timeout); err != nil {
 		return err
 	}
 	log.Println("[DEBUG] Master node deletion complete")

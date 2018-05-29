@@ -9,7 +9,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 )
 
 func outDebug(m string) {
@@ -144,6 +143,10 @@ func resourceStackPointCluster() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
 			},
+			"timeout": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -213,16 +216,16 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 		}
 		if _, ok := d.GetOk("provider_network_id"); !ok {
 			newCluster.ProviderNetworkID = "__new__"
-                } else {
-                        newCluster.ProviderNetworkID = d.Get("provider_network_id").(string)
+		} else {
+			newCluster.ProviderNetworkID = d.Get("provider_network_id").(string)
 		}
 		if _, ok := d.GetOk("provider_network_cidr"); !ok {
 			return fmt.Errorf("StackPoint needs provider_network_cidr for Azure clusters.")
 		}
 		if _, ok := d.GetOk("provider_subnet_id"); !ok {
-                        newCluster.ProviderSubnetID = "__new__"
-                } else {
-                        newCluster.ProviderSubnetID = d.Get("provider_subnet_id").(string)
+			newCluster.ProviderSubnetID = "__new__"
+		} else {
+			newCluster.ProviderSubnetID = d.Get("provider_subnet_id").(string)
 		}
 		if _, ok := d.GetOk("provider_subnet_cidr"); !ok {
 			return fmt.Errorf("StackPoint needs provider_subnet_cidr for Azure clusters.")
@@ -257,7 +260,11 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// Wait until provisioned
-	err = config.Client.WaitClusterProvisioned(config.OrgID, cluster.ID)
+	timeout := int(d.Timeout("Create").Seconds())
+	if v, ok := d.GetOk("timeout"); ok {
+		timeout = v.(int)
+	}
+	err = config.Client.WaitClusterProvisioned(config.OrgID, cluster.ID, timeout)
 	if err != nil {
 		log.Println("[DEBUG] Error while waiting for cluster to be provisioned")
 		return err
@@ -350,8 +357,6 @@ func resourceStackPointClusterUpdate(d *schema.ResourceData, meta interface{}) e
 				if err := config.Client.DeleteSolution(config.OrgID, clusterID, sol.ID); err != nil {
 					return err
 				}
-				// Pause for a few seconds for solution deletion to report (no way to wait for state on this)
-				time.Sleep(10)
 			} else {
 				configuredSols = append(configuredSols, sol.Solution)
 			}
@@ -366,7 +371,11 @@ func resourceStackPointClusterUpdate(d *schema.ResourceData, meta interface{}) e
 					return err
 				}
 				// Wait until installed
-				config.Client.WaitSolutionInstalled(config.OrgID, clusterID, solution.ID)
+				timeout := int(d.Timeout("Update").Seconds())
+				if v, ok := d.GetOk("timeout"); ok {
+					timeout = v.(int)
+				}
+				config.Client.WaitSolutionInstalled(config.OrgID, clusterID, solution.ID, timeout)
 				log.Printf("[DEBUG] Added solution %s\n", sol)
 			}
 		}
@@ -383,7 +392,11 @@ func resourceStackPointClusterDelete(d *schema.ResourceData, meta interface{}) e
 	if err = config.Client.DeleteCluster(config.OrgID, clusterID); err != nil {
 		return err
 	}
-	if err = config.Client.WaitClusterDeleted(config.OrgID, clusterID); err != nil {
+	timeout := int(d.Timeout("Delete").Seconds())
+	if v, ok := d.GetOk("timeout"); ok {
+		timeout = v.(int)
+	}
+	if err = config.Client.WaitClusterDeleted(config.OrgID, clusterID, timeout); err != nil {
 		return err
 	}
 	log.Println("[DEBUG] Cluster deletion complete")
