@@ -6,7 +6,7 @@ variable "aws_code" {
 
 variable "aws_keyset" {
   description = "AWS keyset ID"
-  default     = # YOUR ID HERE
+  default     = "YOUR ID HERE"
 }
 
 variable "aws_k8s_version" {
@@ -31,22 +31,22 @@ variable "aws_zone" {
 
 variable "aws_network_id" {
   description = "AWS network ID"
-  default     = # YOUR ID HERE
+  default     = "YOUR ID HERE"
 }
 
 variable "aws_network_cidr" {
   description = "AWS network CIDR"
-  default     = "172.31.0.0/16"
+  default     = "YOUR ID HERE"
 }
 
 variable "aws_subnet_id" {
   description = "AWS subnet ID"
-  default     = # YOUR ID HERE
+  default     = "YOUR ID HERE"
 }
 
 variable "aws_subnet_cidr" {
   description = "AWS subnet CIDR"
-  default     = "172.31.0.0/24"
+  default     = "YOUR ID HERE"
 }
 
 variable "aws_master_size" {
@@ -67,7 +67,7 @@ variable "azure_code" {
 
 variable "azure_keyset" {
   description = "Azure keyset ID"
-  default     = # YOUR ID HERE
+  default     = "YOUR ID HERE"
 }
 
 variable "azure_k8s_version" {
@@ -87,27 +87,27 @@ variable "azure_region" {
 
 variable "azure_resource_group" {
   description = "Azure resource group"
-  default     = # YOUR ID HERE
+  default     = "__new__"
 }
 
 variable "azure_network_id" {
   description = "Azure network ID"
-  default     = # YOUR ID HERE
+  default     = "__new__"
 }
 
 variable "azure_network_cidr" {
   description = "Azure network CIDR"
-  default     = "172.23.0.0/16"
+  default     = "YOUR ID HERE"
 }
 
 variable "azure_subnet_id" {
   description = "Azure subnet ID"
-  default     = # YOUR ID HERE
+  default     = "__new__"
 }
 
 variable "azure_subnet_cidr" {
   description = "Azure subnet CIDR"
-  default     = "172.23.1.0/24"
+  default     = "YOUR ID HERE"
 }
 
 variable "azure_master_size" {
@@ -128,7 +128,7 @@ variable "digitalocean_code" {
 
 variable "digitalocean_keyset" {
   description = "DigitalOcean keyset ID"
-  default     = # YOUR ID HERE
+  default     = "YOUR ID HERE"
 }
 
 variable "digitalocean_k8s_version" {
@@ -164,7 +164,7 @@ variable "gce_code" {
 
 variable "gce_keyset" {
   description = "GCE keyset ID"
-  default     = # YOUR ID HERE
+  default     = "YOUR ID HERE"
 }
 
 variable "gce_k8s_version" {
@@ -200,7 +200,7 @@ variable "gke_code" {
 
 variable "gke_keyset" {
   description = "GKE keyset ID"
-  default     = # YOUR ID HERE
+  default     = "YOUR ID HERE"
 }
 
 variable "gke_k8s_version" {
@@ -235,7 +235,7 @@ variable "oneandone_code" {
 
 variable "oneandone_keyset" {
   description = "OneAndOne keyset ID"
-  default     = # YOUR ID HERE
+  default     = "YOUR ID HERE"
 }
 
 variable "oneandone_k8s_version" {
@@ -271,7 +271,7 @@ variable "packet_code" {
 
 variable "packet_keyset" {
   description = "Packet keyset ID"
-  default     = # YOUR ID HERE
+  default     = "YOUR ID HERE"
 }
 
 variable "packet_k8s_version" {
@@ -291,7 +291,7 @@ variable "packet_region" {
 
 variable "packet_project_id" {
   description = "Packet project ID"
-  default     = # YOUR ID HERE
+  default     = "YOUR ID HERE"
 }
 
 variable "packet_master_size" {

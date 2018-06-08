@@ -1,6 +1,6 @@
 provider "stackpoint" {
-  org_id     = 111
-  ssh_keyset = 3524
+  org_id     = ""
+  ssh_keyset = ""
 }
 
 data "stackpoint_instance_specs" "master-specs" {

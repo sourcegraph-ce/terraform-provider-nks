@@ -1,6 +1,6 @@
 provider "stackpoint" {
-  org_id     = 4
-  ssh_keyset = 66
+  org_id     = ""
+  ssh_keyset = ""
 }
 
 data "stackpoint_instance_specs" "master-specs" {
@@ -24,7 +24,7 @@ resource "stackpoint_cluster" "terraform-cluster" {
   startup_worker_size     = "${data.stackpoint_instance_specs.worker-specs.node_size}"
   region                  = "${var.azure_region}"
   provider_resource_group = "${var.azure_resource_group}"
-#  provider_network_id     = "${var.azure_network_id}"   // These can default to __new__, then master nodes can pick up their values
+#  provider_network_id     = "${var.azure_network_id}"   # These can default to __new__, then master nodes can pick up their values
 #  provider_network_cidr   = "${var.azure_network_cidr}"
 #  provider_subnet_id      = "${var.azure_subnet_id}"
 #  provider_subnet_cidr    = "${var.azure_subnet_cidr}"

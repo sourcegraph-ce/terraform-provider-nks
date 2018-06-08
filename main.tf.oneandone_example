@@ -1,6 +1,6 @@
 provider "stackpoint" {
-  org_id     = 111
-  ssh_keyset = 3524
+  org_id     = ""
+  ssh_keyset = ""
 }
 
 data "stackpoint_instance_specs" "master-specs" {
@@ -30,17 +30,17 @@ resource "stackpoint_cluster" "terraform-cluster" {
   solutions             = ["helm_tiller"]
 }
 
-resource "stackpoint_master_node" "master2" {
-  cluster_id           = "${stackpoint_cluster.terraform-cluster.id}"
-  provider_code        = "${var.oneandone_code}"
-  platform             = "${var.oneandone_platform}"
-  node_size            = "${data.stackpoint_instance_specs.master-specs.node_size}"
-}
+#resource "stackpoint_master_node" "master2" {
+#  cluster_id           = "${stackpoint_cluster.terraform-cluster.id}"
+#  provider_code        = "${var.oneandone_code}"
+#  platform             = "${var.oneandone_platform}"
+#  node_size            = "${data.stackpoint_instance_specs.master-specs.node_size}"
+#}
 
-resource "stackpoint_nodepool" "nodepool2" {
-  cluster_id           = "${stackpoint_cluster.terraform-cluster.id}"
-  provider_code        = "${var.oneandone_code}"
-  platform             = "${var.oneandone_platform}"
-  worker_count         = 3
-  worker_size          = "${data.stackpoint_instance_specs.worker-specs.node_size}"
-}
+#resource "stackpoint_nodepool" "nodepool2" {
+#  cluster_id           = "${stackpoint_cluster.terraform-cluster.id}"
+#  provider_code        = "${var.oneandone_code}"
+#  platform             = "${var.oneandone_platform}"
+#  worker_count         = 1
+#  worker_size          = "${data.stackpoint_instance_specs.worker-specs.node_size}"
+#}
