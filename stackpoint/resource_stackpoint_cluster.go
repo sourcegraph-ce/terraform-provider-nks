@@ -6,19 +6,10 @@ import (
 	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
 	"github.com/hashicorp/terraform/helper/schema"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 )
 
-func outDebug(m string) {
-	f, err := os.OpenFile("/tmp/tf_debug.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	fmt.Fprintf(f, "%s", m)
-}
 func resourceStackPointCluster() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceStackPointClusterCreate,
@@ -26,6 +17,10 @@ func resourceStackPointCluster() *schema.Resource {
 		Update: resourceStackPointClusterUpdate,
 		Delete: resourceStackPointClusterDelete,
 		Schema: map[string]*schema.Schema{
+			"org_id": {
+				Type:     schema.TypeInt,
+				Required: true,
+			},
 			"cluster_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -74,6 +69,10 @@ func resourceStackPointCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"ssh_keyset": {
+				Type:     schema.TypeInt,
+				Required: true,
+			},
 			"region": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -90,17 +89,25 @@ func resourceStackPointCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"provider_network_id": {
+			"provider_network_id_requested": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			"provider_network_id": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"provider_network_cidr": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"provider_subnet_id": {
+			"provider_subnet_id_requested": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			"provider_subnet_id": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"provider_subnet_cidr": {
 				Type:     schema.TypeString,
@@ -138,11 +145,6 @@ func resourceStackPointCluster() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-			"solutions": {
-				Type:     schema.TypeList,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Optional: true,
-			},
 			"timeout": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -154,6 +156,8 @@ func resourceStackPointCluster() *schema.Resource {
 func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client for API
 	config := meta.(*Config)
+	orgID := d.Get("org_id").(int)
+	sshKeyID := d.Get("ssh_keyset").(int)
 
 	// Set up cluster structure based on input from user
 	newCluster := stackpointio.Cluster{
@@ -170,7 +174,7 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 		EtcdType:          d.Get("etcd_type").(string),
 		Platform:          d.Get("platform").(string),
 		Channel:           d.Get("channel").(string),
-		SSHKeySet:         config.SSHKeyset,
+		SSHKeySet:         sshKeyID,
 		Solutions:         []stackpointio.Solution{}, // helm_tiller will get automatically installed
 	}
 	// Grab provider-specific fields
@@ -181,26 +185,30 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 		if _, ok := d.GetOk("zone"); !ok {
 			return fmt.Errorf("StackPoint needs zone for AWS clusters.")
 		}
-		if _, ok := d.GetOk("provider_network_id"); !ok {
+		// Allow user to submit values for provider_network_id_requested, and put real value in computed provider_network_id
+		if _, ok := d.GetOk("provider_network_id_requested"); !ok {
 			newCluster.ProviderNetworkID = "__new__"
 		} else {
-			newCluster.ProviderNetworkID = d.Get("provider_network_id").(string)
+			newCluster.ProviderNetworkID = d.Get("provider_network_id_requested").(string)
 		}
 		if _, ok := d.GetOk("provider_network_cidr"); !ok {
-			return fmt.Errorf("StackPoint needs provider_network_cidr for AWS clusters.")
+			newCluster.ProviderNetworkCdr = "10.0.0.0/16"
+		} else {
+			newCluster.ProviderNetworkCdr = d.Get("provider_network_cidr").(string)
 		}
-		if _, ok := d.GetOk("provider_subnet_id"); !ok {
+		// Allow user to submit values for provider_subnet_id_requested, and put real value in computed provider_subnet_id
+		if _, ok := d.GetOk("provider_subnet_id_requested"); !ok {
 			newCluster.ProviderSubnetID = "__new__"
 		} else {
-			newCluster.ProviderSubnetID = d.Get("provider_subnet_id").(string)
+			newCluster.ProviderSubnetID = d.Get("provider_subnet_id_requested").(string)
 		}
 		if _, ok := d.GetOk("provider_subnet_cidr"); !ok {
-			return fmt.Errorf("StackPoint needs provider_subnet_cidr for AWS clusters.")
+			newCluster.ProviderSubnetCidr = "10.0.0.0/24"
+		} else {
+			newCluster.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
 		}
 		newCluster.Region = d.Get("region").(string)
 		newCluster.Zone = d.Get("zone").(string)
-		newCluster.ProviderNetworkCdr = d.Get("provider_network_cidr").(string)
-		newCluster.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
 	} else if d.Get("provider_code").(string) == "do" || d.Get("provider_code").(string) == "gce" ||
 		d.Get("provider_code").(string) == "gke" || d.Get("provider_code").(string) == "oneandone" {
 		if _, ok := d.GetOk("region"); !ok {
@@ -214,26 +222,30 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 		if _, ok := d.GetOk("region"); !ok {
 			return fmt.Errorf("StackPoint needs region for Azure clusters.")
 		}
-		if _, ok := d.GetOk("provider_network_id"); !ok {
+		// Allow user to submit values for provider_network_id_requested, and put real value in computed provider_network_id
+		if _, ok := d.GetOk("provider_network_id_requested"); !ok {
 			newCluster.ProviderNetworkID = "__new__"
 		} else {
-			newCluster.ProviderNetworkID = d.Get("provider_network_id").(string)
+			newCluster.ProviderNetworkID = d.Get("provider_network_id_requested").(string)
 		}
 		if _, ok := d.GetOk("provider_network_cidr"); !ok {
-			return fmt.Errorf("StackPoint needs provider_network_cidr for Azure clusters.")
+			newCluster.ProviderNetworkCdr = "10.0.0.0/16"
+		} else {
+			newCluster.ProviderNetworkCdr = d.Get("provider_network_cidr").(string)
 		}
-		if _, ok := d.GetOk("provider_subnet_id"); !ok {
+		// Allow user to submit values for provider_subnet_id_requested, and put real value in computed provider_subnet_id
+		if _, ok := d.GetOk("provider_subnet_id_requested"); !ok {
 			newCluster.ProviderSubnetID = "__new__"
 		} else {
-			newCluster.ProviderSubnetID = d.Get("provider_subnet_id").(string)
+			newCluster.ProviderSubnetID = d.Get("provider_subnet_id_requested").(string)
 		}
 		if _, ok := d.GetOk("provider_subnet_cidr"); !ok {
-			return fmt.Errorf("StackPoint needs provider_subnet_cidr for Azure clusters.")
+			newCluster.ProviderSubnetCidr = "10.0.0.0/24"
+		} else {
+			newCluster.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
 		}
 		newCluster.ProviderResourceGp = d.Get("provider_resource_group").(string)
 		newCluster.Region = d.Get("region").(string)
-		newCluster.ProviderNetworkCdr = d.Get("provider_network_cidr").(string)
-		newCluster.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
 	} else if d.Get("provider_code").(string) == "packet" {
 		if _, ok := d.GetOk("region"); !ok {
 			return fmt.Errorf("StackPoint needs region for Packet clusters.")
@@ -244,9 +256,8 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 		newCluster.Region = d.Get("region").(string)
 		newCluster.ProjectID = d.Get("project_id").(string)
 	}
-
 	// Do cluster creation call
-	cluster, err := config.Client.CreateCluster(config.OrgID, newCluster)
+	cluster, err := config.Client.CreateCluster(orgID, newCluster)
 
 	reqJSON, _ := json.Marshal(newCluster)
 	resJSON, _ := json.Marshal(cluster)
@@ -256,6 +267,7 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 
 	// Don't bail until request and response are logged above
 	if err != nil {
+		log.Printf("[DEBUG] Cluster error at CreateCluster: %s", err)
 		return err
 	}
 
@@ -264,9 +276,9 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 	if v, ok := d.GetOk("timeout"); ok {
 		timeout = v.(int)
 	}
-	err = config.Client.WaitClusterProvisioned(config.OrgID, cluster.ID, timeout)
+	err = config.Client.WaitClusterProvisioned(orgID, cluster.ID, timeout)
 	if err != nil {
-		log.Println("[DEBUG] Error while waiting for cluster to be provisioned")
+		log.Printf("[DEBUG] Cluster error at WaitClusterProvisioned: %s", err)
 		return err
 	}
 	// Set ID in TF
@@ -281,7 +293,9 @@ func resourceStackPointClusterRead(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 	config := meta.(*Config)
-	cluster, err := config.Client.GetCluster(config.OrgID, clusterID)
+	orgID := d.Get("org_id").(int)
+
+	cluster, err := config.Client.GetCluster(orgID, clusterID)
 	if err != nil {
 		if strings.Contains(err.Error(), "404") {
 			log.Println("[DEBUG] Cluster read got a 404")
@@ -318,68 +332,17 @@ func resourceStackPointClusterRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("image", cluster.Image)
 	d.Set("channel", cluster.Channel)
 
-	// Collect solutions for TF state
-	var solArray []string
-	for _, sol := range cluster.Solutions {
-		solArray = append(solArray, sol.Solution)
-	}
-	d.Set("solutions", solArray)
-
 	return nil
 }
 
 func resourceStackPointClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	clusterID, err := strconv.Atoi(d.Id())
-	if err != nil {
-		return err
-	}
-	config := meta.(*Config)
+	//clusterID, err := strconv.Atoi(d.Id())
+	//if err != nil {
+	//	return err
+	//}
+	//config := meta.(*Config)
+	//orgID := d.Get("org_id").(int)
 
-	if d.HasChange("solutions") {
-		_, newV := d.GetChange("solutions")
-		userIntList := newV.([]interface{})
-		var userSolutionList []string
-		for _, item := range userIntList {
-			userSolutionList = append(userSolutionList, item.(string))
-		}
-		solutions, err := config.Client.GetSolutions(config.OrgID, clusterID)
-		if err != nil {
-			return err
-		}
-		// Loop through currently configured solutions, delete any that aren't in user's list
-		var configuredSols []string
-		for _, sol := range solutions {
-			if !stackpointio.StringInSlice(sol.Solution, userSolutionList) {
-				// Solution not in user's list, needs to be deleted
-				if !sol.Deleteable {
-					return fmt.Errorf("Solution, %s, is marked as non-deleteable and cannot be deleted.", sol.Solution)
-				}
-				if err := config.Client.DeleteSolution(config.OrgID, clusterID, sol.ID); err != nil {
-					return err
-				}
-			} else {
-				configuredSols = append(configuredSols, sol.Solution)
-			}
-		}
-		// Loop through user selected solutions, add any that aren't in current cluster
-		for _, sol := range userSolutionList {
-			if !stackpointio.StringInSlice(sol, configuredSols) {
-				// Solution not in cluster, needs to be added
-				newSolution := stackpointio.Solution{Solution: sol}
-				solution, err := config.Client.AddSolution(config.OrgID, clusterID, newSolution)
-				if err != nil {
-					return err
-				}
-				// Wait until installed
-				timeout := int(d.Timeout("Update").Seconds())
-				if v, ok := d.GetOk("timeout"); ok {
-					timeout = v.(int)
-				}
-				config.Client.WaitSolutionInstalled(config.OrgID, clusterID, solution.ID, timeout)
-				log.Printf("[DEBUG] Added solution %s\n", sol)
-			}
-		}
-	}
 	return resourceStackPointClusterRead(d, meta)
 }
 
@@ -389,14 +352,18 @@ func resourceStackPointClusterDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 	config := meta.(*Config)
-	if err = config.Client.DeleteCluster(config.OrgID, clusterID); err != nil {
+	orgID := d.Get("org_id").(int)
+
+	if err = config.Client.DeleteCluster(orgID, clusterID); err != nil {
+		log.Printf("[DEBUG] Cluster error while calling DeleteCluster: %s", err)
 		return err
 	}
 	timeout := int(d.Timeout("Delete").Seconds())
 	if v, ok := d.GetOk("timeout"); ok {
 		timeout = v.(int)
 	}
-	if err = config.Client.WaitClusterDeleted(config.OrgID, clusterID, timeout); err != nil {
+	if err = config.Client.WaitClusterDeleted(orgID, clusterID, timeout); err != nil {
+		log.Printf("[DEBUG] Cluster error at WaitClusterDeleted: %s", err)
 		return err
 	}
 	log.Println("[DEBUG] Cluster deletion complete")

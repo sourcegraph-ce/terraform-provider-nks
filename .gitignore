@@ -1,11 +1,28 @@
-# Binaries for programs and plugins
-*.exe
 *.dll
-*.so
-*.dylib
-
-# Test binary, build with `go test -c`
+*.exe
+.DS_Store
+example.tf
+terraform.tfplan
+terraform.tfstate
+bin/
+modules-dev/
+/pkg/
+website/.vagrant
+website/.bundle
+website/build
+website/node_modules
+.vagrant/
+*.backup
+./*.tfstate
+.terraform/
+*.log
+*.bak
+*~
+.*.swp
+.idea
+*.iml
 *.test
+*.iml
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
@@ -13,11 +30,13 @@
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
 
-.terraform
-crash.log
 main.tf
+variables.tf
 variables.tf.LOCAL
-variables.tf_safe
 terraform-provider-stackpoint
-terraform.tfstate
-terraform.tfstate.backup
+
+website/vendor
+
+# Test exclusions
+!command/test-fixtures/**/*.tfstate
+!command/test-fixtures/**/.terraform/

@@ -1,64 +1,65 @@
-Terraform StackPointCloud Provider
-============================
+Terraform Provider
+==================
 
-- Website: https://www.stackpoint.io
+- Website: https://www.terraform.io
+- [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
+- Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
 
-Maintainers
------------
-
-This provider plugin is maintained by:
-
-* Justin Hopper ([@justinhopper](https://github.com/justinhopper))
+<img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg" width="600px">
 
 Requirements
 ------------
 
--       [Terraform](https://www.terraform.io/downloads.html) 0.10.x
--       [Go](https://golang.org/doc/install) 1.9 (to build the provider plugin)
--	[StackPointCloud Account](http://www.stackpoint.io)
+-	[Terraform](https://www.terraform.io/downloads.html) 0.10.x
+-	[Go](https://golang.org/doc/install) 1.9 (to build the provider plugin)
 
 Building The Provider
 ---------------------
 
-Clone repository to: `$GOPATH/src/github.com/StackPointCloud/terraform-provider-stackpoint`
+Clone repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-stackpoint`
 
 ```sh
-$ mkdir -p $GOPATH/src/github.com/StackPointCloud; cd $GOPATH/src/github.com/StackPointCloud
-$ git clone https://github.com/StackPointCloud/terraform-provider-stackpoint
+$ mkdir -p $GOPATH/src/github.com/terraform-providers; cd $GOPATH/src/github.com/terraform-providers
+$ git clone git@github.com:terraform-providers/terraform-provider-stackpoint
 ```
 
 Enter the provider directory and build the provider
 
 ```sh
-$ cd $GOPATH/src/github.com/StackPointCloud/terraform-provider-stackpoint
+$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-stackpoint
 $ make build
 ```
 
-Using The Provider
-------------------
+Using the provider
+----------------------
+If you're building the provider, follow the instructions to [install it as a plugin.](https://www.terraform.io/docs/plugins/basics.html#installing-a-plugin) After placing it into your plugins directory,  run `terraform init` to initialize it.
 
-The stackpoint provider plugin comes with several example configuration files for working with different cloud platforms that include:
+Developing the Provider
+---------------------------
 
-- 1&1
-- AWS
-- Azure
-- Digital Ocean
-- Google Compute Engine
-- Google Kontainer Engine
-- Packet
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.9+ is *required*). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
 
-To use one of the example configuration files, e.g. AWS, copy the example file to TerraForm's main config file:
+To compile the provider, run `make build`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
+
 ```sh
-$ cp main.tf.aws_example main.tf
+$ make build
+...
+$ $GOPATH/bin/terraform-provider-stackpoint
+...
 ```
 
-All of the example configuration files use values in the variables.tf file. Edit this file and replace `# YOUR ID HERE` with your ID key from the StackPointCloud system for that provider. If you plan to only use one provider, such as AWS, you only need to insert your ID key for AWS and can leave the rest as they are.
+In order to test the provider, you can simply run `make test`.
 
-The default configuration in each example will:
+```sh
+$ make test
+```
 
-- Load the stackpoint provider plugin (be sure to insert your Organization ID and SSH Keyset ID from the StackPointCloud system)
-- Configure a master node size (defaulted to look in the variables.tf file)
-- Configure a worker node size (defaulted to look in the variables.tf file)
-- Configure a cluster with one master and two workers at the cloud platform specified (most of these options can be left at default settings, or you can customize as you see fit)
+In order to run the full suite of Acceptance tests, run `make testacc`.
 
-The next two blocks are commented out. The first allows for adding a second master node, making the cluster HA (highly available). The second allows for adding an additional worker node pool.
+*Note:* Acceptance tests create real resources, and often cost money to run.
+
+```sh
+$ make testacc
+```
+
+If you need to add a new package in the vendor directory under `github.com/StackPointCloud/stackpoint-sdk-go`, create a separate PR handling _only_ the update of the vendor for your new requirement. Make sure to pin your dependency to a specific version, and that all versions of `github.com/StackPointCloud/stackpoint-sdk-go/*` are pinned to the same version.

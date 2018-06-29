@@ -19,27 +19,22 @@ func Provider() terraform.ResourceProvider {
 				Description: "The token key for API operations.",
 			},
 			"endpoint": {
-				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("SPC_BASE_API_URL", nil),
+				Type:     schema.TypeString,
+				Required: true,
+				DefaultFunc: schema.EnvDefaultFunc("SPC_BASE_API_URL",
+					"https://api.stackpoint.io/"),
 				Description: "The endpoint URL for API operations.",
-			},
-			"org_id": {
-				Type:     schema.TypeInt,
-				Required: true,
-			},
-			"ssh_keyset": {
-				Type:     schema.TypeInt,
-				Required: true,
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"stackpoint_cluster":     resourceStackPointCluster(),
 			"stackpoint_master_node": resourceStackPointMasterNode(),
 			"stackpoint_nodepool":    resourceStackPointNodePool(),
+			"stackpoint_solution":    resourceStackPointSolution(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"stackpoint_instance_specs": dataSourceStackPointInstanceSpecs(),
+			"stackpoint_keysets":        dataSourceStackPointKeysets(),
 		},
 		ConfigureFunc: providerConfigure,
 	}
@@ -53,11 +48,9 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		return nil, fmt.Errorf("StackPoint endpoint has not been provided.")
 	}
 	config := Config{
-		Token:     d.Get("token").(string),
-		EndPoint:  d.Get("endpoint").(string),
-		Client:    stackpointio.NewClient(d.Get("token").(string), d.Get("endpoint").(string)),
-		OrgID:     d.Get("org_id").(int),
-		SSHKeyset: d.Get("ssh_keyset").(int),
+		Token:    d.Get("token").(string),
+		EndPoint: d.Get("endpoint").(string),
+		Client:   stackpointio.NewClient(d.Get("token").(string), d.Get("endpoint").(string)),
 	}
 	return &config, nil
 }

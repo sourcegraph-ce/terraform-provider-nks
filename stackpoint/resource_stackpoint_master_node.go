@@ -16,6 +16,10 @@ func resourceStackPointMasterNode() *schema.Resource {
 		Update: resourceStackPointMasterNodeUpdate,
 		Delete: resourceStackPointMasterNodeDelete,
 		Schema: map[string]*schema.Schema{
+			"org_id": {
+				Type:     schema.TypeInt,
+				Required: true,
+			},
 			"cluster_id": {
 				Type:     schema.TypeInt,
 				Required: true,
@@ -38,17 +42,18 @@ func resourceStackPointMasterNode() *schema.Resource {
 			"zone": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
+			},
+			"provider_subnet_id_requested": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"provider_subnet_id": {
 				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Computed: true,
 			},
 			"provider_subnet_cidr": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"state": {
 				Type:     schema.TypeString,
@@ -82,6 +87,7 @@ func resourceStackPointMasterNodeCreate(d *schema.ResourceData, meta interface{}
 	// Get client for API
 	config := meta.(*Config)
 	clusterID := d.Get("cluster_id").(int)
+	orgID := d.Get("org_id").(int)
 
 	// Set up new master node
 	newNode := stackpointio.NodeAdd{
@@ -96,25 +102,30 @@ func resourceStackPointMasterNodeCreate(d *schema.ResourceData, meta interface{}
 		newNode.Zone = d.Get("zone").(string)
 	}
 	if d.Get("provider_code").(string) == "aws" || d.Get("provider_code").(string) == "azure" {
-		if _, ok := d.GetOk("provider_subnet_id"); !ok {
-			return fmt.Errorf("StackPoint needs provider_subnet_id for AWS and Azure clusters.")
+		// Allow user to submit values for provider_subnet_id_requested, and put real value in computed provider_subnet_id
+		if _, ok := d.GetOk("provider_subnet_id_requested"); !ok {
+			newNode.ProviderSubnetID = "__new__"
+		} else {
+			newNode.ProviderSubnetID = d.Get("provider_subnet_id_requested").(string)
 		}
 		if _, ok := d.GetOk("provider_subnet_cidr"); !ok {
-			return fmt.Errorf("StackPoint needs provider_subnet_cidr for AWS and Azure clusters.")
+			newNode.ProviderSubnetCidr = "10.0.1.0/24"
+		} else {
+			newNode.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
 		}
-		newNode.ProviderSubnetID = d.Get("provider_subnet_id").(string)
-		newNode.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
 	}
-	log.Println("[DEBUG] Cluster update attempting to add master node\n")
-	nodes, err := config.Client.AddNode(config.OrgID, clusterID, newNode)
+	log.Println("[DEBUG] MasterNode update attempting to add master node\n")
+	nodes, err := config.Client.AddNode(orgID, clusterID, newNode)
 	if err != nil {
+		log.Println("[DEBUG] MasterNode failed when creating new master node: %s\n", err)
 		return err
 	}
 	timeout := int(d.Timeout("Create").Seconds())
 	if v, ok := d.GetOk("timeout"); ok {
 		timeout = v.(int)
 	}
-	if err := config.Client.WaitNodeProvisioned(config.OrgID, clusterID, nodes[0].ID, timeout); err != nil {
+	if err := config.Client.WaitNodeProvisioned(orgID, clusterID, nodes[0].ID, timeout); err != nil {
+		log.Println("[DEBUG] MasterNode failed when waiting for new master node: %s\n", err)
 		return err
 	}
 
@@ -131,13 +142,16 @@ func resourceStackPointMasterNodeRead(d *schema.ResourceData, meta interface{}) 
 	}
 	config := meta.(*Config)
 	clusterID := d.Get("cluster_id").(int)
-	node, err := config.Client.GetNode(config.OrgID, clusterID, nodeID)
+	orgID := d.Get("org_id").(int)
+
+	node, err := config.Client.GetNode(orgID, clusterID, nodeID)
 	if err != nil {
 		if strings.Contains(err.Error(), "404") {
-			log.Println("[DEBUG] Master node read got a 404, delete")
+			log.Println("[DEBUG] MasterNode read got a 404, delete")
 			d.SetId("")
 			return nil
 		}
+		log.Println("[DEBUG] MasterNode GetNode failed in read: %s\n", err)
 		return err
 	}
 	d.Set("state", node.State)
@@ -150,7 +164,6 @@ func resourceStackPointMasterNodeRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("public_ip", node.PublicIP)
 	d.Set("cluster_id", node.ClusterID)
 	d.Set("instance_id", node.InstanceID)
-	outDebug(fmt.Sprintf("In MasterNodeRead, instance_id: %s\n", node.InstanceID))
 
 	return nil
 }
@@ -167,14 +180,18 @@ func resourceStackPointMasterNodeDelete(d *schema.ResourceData, meta interface{}
 	}
 	config := meta.(*Config)
 	clusterID := d.Get("cluster_id").(int)
-	if err = config.Client.DeleteNode(config.OrgID, clusterID, nodeID); err != nil {
+	orgID := d.Get("org_id").(int)
+
+	if err = config.Client.DeleteNode(orgID, clusterID, nodeID); err != nil {
+		log.Println("[DEBUG] MasterNode DeleteNode failed: %s\n", err)
 		return err
 	}
 	timeout := int(d.Timeout("Delete").Seconds())
 	if v, ok := d.GetOk("timeout"); ok {
 		timeout = v.(int)
 	}
-	if err = config.Client.WaitNodeDeleted(config.OrgID, clusterID, nodeID, timeout); err != nil {
+	if err = config.Client.WaitNodeDeleted(orgID, clusterID, nodeID, timeout); err != nil {
+		log.Println("[DEBUG] MasterNode WaitNodeDeleted failed when deleting node: %s\n", err)
 		return err
 	}
 	log.Println("[DEBUG] Master node deletion complete")

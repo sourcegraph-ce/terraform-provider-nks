@@ -16,6 +16,10 @@ func resourceStackPointNodePool() *schema.Resource {
 		Update: resourceStackPointNodePoolUpdate,
 		Delete: resourceStackPointNodePoolDelete,
 		Schema: map[string]*schema.Schema{
+			"org_id": {
+				Type:     schema.TypeInt,
+				Required: true,
+			},
 			"platform": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -44,10 +48,14 @@ func resourceStackPointNodePool() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
-			"provider_subnet_id": {
+			"provider_subnet_id_requested": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+			},
+			"provider_subnet_id": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"provider_subnet_cidr": {
 				Type:     schema.TypeString,
@@ -90,8 +98,8 @@ func resourceStackPointNodePoolCreate(d *schema.ResourceData, meta interface{}) 
 	// Get client for API
 	config := meta.(*Config)
 	clusterID := d.Get("cluster_id").(int)
+	orgID := d.Get("org_id").(int)
 
-	outDebug(fmt.Sprintf("In nodepool creation\n"))
 	newNodepool := stackpointio.NodePool{
 		Name:      "TerraForm NodePool",
 		NodeCount: d.Get("worker_count").(int),
@@ -105,38 +113,43 @@ func resourceStackPointNodePoolCreate(d *schema.ResourceData, meta interface{}) 
 		newNodepool.Zone = d.Get("zone").(string)
 	}
 	if d.Get("provider_code").(string) == "aws" || d.Get("provider_code").(string) == "azure" {
-		if _, ok := d.GetOk("provider_subnet_id"); !ok {
-			return fmt.Errorf("StackPoint needs provider_subnet_id for AWS and Azure clusters.")
+		// Allow user to submit values for provider_subnet_id_requested, and put real value in computed provider_subnet_id
+		if _, ok := d.GetOk("provider_subnet_id_requested"); !ok {
+			newNodepool.ProviderSubnetID = "__new__"
+		} else {
+			newNodepool.ProviderSubnetID = d.Get("provider_subnet_id_requested").(string)
 		}
 		if _, ok := d.GetOk("provider_subnet_cidr"); !ok {
-			return fmt.Errorf("StackPoint needs provider_subnet_cidr for AWS and Azure clusters.")
+			newNodepool.ProviderSubnetCidr = "10.0.1.0/24"
+		} else {
+			newNodepool.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
 		}
-		newNodepool.ProviderSubnetID = d.Get("provider_subnet_id").(string)
-		newNodepool.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
 	}
 	log.Println("[DEBUG] Nodepool creation running\n")
-	pool, err := config.Client.CreateNodePool(config.OrgID, clusterID, newNodepool)
+	pool, err := config.Client.CreateNodePool(orgID, clusterID, newNodepool)
 	if err != nil {
+		log.Println("[DEBUG] Nodepool creation failed: %s\n", err)
 		return err
 	}
 	timeout := int(d.Timeout("Create").Seconds())
 	if v, ok := d.GetOk("timeout"); ok {
 		timeout = v.(int)
 	}
-	config.Client.WaitNodePoolProvisioned(config.OrgID, clusterID, pool.ID, timeout)
+	config.Client.WaitNodePoolProvisioned(orgID, clusterID, pool.ID, timeout)
 
 	// Set ID in TF
 	d.SetId(strconv.Itoa(pool.ID))
 
 	// Nodepools now change to active status before nodes inside them are provisioned,
 	// so wait for new nodes to provision
-	nodes, err := config.Client.GetNodesInPool(config.OrgID, clusterID, pool.ID)
+	nodes, err := config.Client.GetNodesInPool(orgID, clusterID, pool.ID)
 	if err != nil {
+		log.Println("[DEBUG] Nodepool GetNodesInPool failed: %s\n", err)
 		return err
 	}
 	for i := 0; i < len(nodes); i++ {
-		outDebug(fmt.Sprintf("In nodepoolcreate, waiting for node.ID to provision: %d\n", nodes[i].ID))
-		if err = config.Client.WaitNodeProvisioned(config.OrgID, clusterID, nodes[i].ID, timeout); err != nil {
+		if err = config.Client.WaitNodeProvisioned(orgID, clusterID, nodes[i].ID, timeout); err != nil {
+			log.Println("[DEBUG] Nodepool WaitNodeProvisioned failed: %s\n", err)
 			return err
 		}
 	}
@@ -154,19 +167,22 @@ func resourceStackPointNodePoolRead(d *schema.ResourceData, meta interface{}) er
 	}
 	config := meta.(*Config)
 	clusterID := d.Get("cluster_id").(int)
-	nodepool, err := config.Client.GetNodePool(config.OrgID, clusterID, nodepoolID)
+	orgID := d.Get("org_id").(int)
+
+	nodepool, err := config.Client.GetNodePool(orgID, clusterID, nodepoolID)
 	if err != nil {
 		if strings.Contains(err.Error(), "404") {
 			log.Println("[DEBUG] Nodepool read got a 404, delete")
 			d.SetId("")
-			outDebug(fmt.Sprintf("In nodepool read, nodepool is gone, got 404\n"))
 			return nil
 		}
-		outDebug(fmt.Sprintf("In nodepool creation\n"))
+		log.Println("[DEBUG] Nodepool GetNodePool failed: %s\n", err)
 		return err
 	}
 	d.Set("state", nodepool.State)
 	d.Set("platform", nodepool.Platform)
+	d.Set("provider_subnet_id", nodepool.ProviderSubnetID)
+	d.Set("provider_subnet_cidr", nodepool.ProviderSubnetCidr)
 	d.Set("worker_size", nodepool.Size)
 	d.Set("worker_count", nodepool.NodeCount)
 	d.Set("cluster_id", nodepool.ClusterID)
@@ -175,7 +191,6 @@ func resourceStackPointNodePoolRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("autoscale_min_count", nodepool.MinCount)
 	d.Set("autoscale_max_count", nodepool.MaxCount)
 	d.Set("instance_id", nodepool.InstanceID)
-	outDebug(fmt.Sprintf("In NodePoolRead, instance_id: %s\n", nodepool.InstanceID))
 
 	return nil
 }
@@ -187,30 +202,33 @@ func resourceStackPointNodePoolUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 	config := meta.(*Config)
 	clusterID := d.Get("cluster_id").(int)
+	orgID := d.Get("org_id").(int)
 
 	if d.HasChange("worker_count") {
-		outDebug(fmt.Sprintf("In nodepoolupdate, worker_count has change, worker_count: %d, nodepooidID: %d\n", d.Get("worker_count").(int), nodepoolID))
 		oldV, newV := d.GetChange("worker_count")
 		oldVi, newVi := oldV.(int), newV.(int)
 
 		if oldVi > newVi {
 			// Decrease worker count, try to cull the herd to match wanted value
-			nodes, err := config.Client.GetNodesInPool(config.OrgID, clusterID, nodepoolID)
+			nodes, err := config.Client.GetNodesInPool(orgID, clusterID, nodepoolID)
 			if err != nil {
+				log.Println("[DEBUG] Nodepool GetNodesInPool failed: %s\n", err)
 				return err
 			}
 			workerCount := len(nodes)
 
 			// Delete only as many workers (from workerCount) as it takes to get down to wanted value (newVi)
 			for i := 0; i < (workerCount - newVi); i++ {
-				if err = config.Client.DeleteNode(config.OrgID, clusterID, nodes[i].ID); err != nil {
+				if err = config.Client.DeleteNode(orgID, clusterID, nodes[i].ID); err != nil {
+					log.Println("[DEBUG] Nodepool DeleteNode failed: %s\n", err)
 					return err
 				}
 				timeout := int(d.Timeout("Delete").Seconds())
 				if v, ok := d.GetOk("timeout"); ok {
 					timeout = v.(int)
 				}
-				if err = config.Client.WaitNodeDeleted(config.OrgID, clusterID, nodes[i].ID, timeout); err != nil {
+				if err = config.Client.WaitNodeDeleted(orgID, clusterID, nodes[i].ID, timeout); err != nil {
+					log.Println("[DEBUG] Nodepool WaitNodeDeleted failed: %s\n", err)
 					return err
 				}
 			}
@@ -221,8 +239,9 @@ func resourceStackPointNodePoolUpdate(d *schema.ResourceData, meta interface{}) 
 				Role:       "worker",
 				NodePoolID: nodepoolID,
 			}
-			nodes, err := config.Client.AddNodesToNodePool(config.OrgID, clusterID, nodepoolID, newNode)
+			nodes, err := config.Client.AddNodesToNodePool(orgID, clusterID, nodepoolID, newNode)
 			if err != nil {
+				log.Println("[DEBUG] Nodepool AddNodesToNodePool failed: %s\n", err)
 				return err
 			}
 			for i := 0; i < len(nodes); i++ {
@@ -230,7 +249,8 @@ func resourceStackPointNodePoolUpdate(d *schema.ResourceData, meta interface{}) 
 				if v, ok := d.GetOk("timeout"); ok {
 					timeout = v.(int)
 				}
-				if err = config.Client.WaitNodeProvisioned(config.OrgID, clusterID, nodes[i].ID, timeout); err != nil {
+				if err = config.Client.WaitNodeProvisioned(orgID, clusterID, nodes[i].ID, timeout); err != nil {
+					log.Println("[DEBUG] Nodepool WaitNodeProvisioned failed: %s\n", err)
 					return err
 				}
 			}
@@ -246,28 +266,35 @@ func resourceStackPointNodePoolDelete(d *schema.ResourceData, meta interface{}) 
 	}
 	config := meta.(*Config)
 	clusterID := d.Get("cluster_id").(int)
-	outDebug(fmt.Sprintf("In nodepooldelete, ID is: %d\n", nodepoolID))
+	orgID := d.Get("org_id").(int)
 
-	// Nodepools can't actually be deleted, but we can delete all the worker nodes within it
-	nodes, err := config.Client.GetNodesInPool(config.OrgID, clusterID, nodepoolID)
+	// Gather list of nodes, delete them all before calling for nodepool deletion
+	nodes, err := config.Client.GetNodesInPool(orgID, clusterID, nodepoolID)
 	if err != nil {
+		log.Println("[DEBUG] Nodepool GetNodesInPool failed in deletion: %s\n", err)
 		return err
 	}
 	for i := 0; i < len(nodes); i++ {
 		// Delete node if active
 		if nodes[i].State == stackpointio.NodeRunningStateString {
-			outDebug(fmt.Sprintf("In nodepooldelete, deleting node.ID: %d\n", nodes[i].ID))
-			if err = config.Client.DeleteNode(config.OrgID, clusterID, nodes[i].ID); err != nil {
+			if err = config.Client.DeleteNode(orgID, clusterID, nodes[i].ID); err != nil {
+				log.Println("[DEBUG] Nodepool DeleteNode failed: %s\n", err)
 				return err
 			}
 			timeout := int(d.Timeout("Delete").Seconds())
 			if v, ok := d.GetOk("timeout"); ok {
 				timeout = v.(int)
 			}
-			if err = config.Client.WaitNodeDeleted(config.OrgID, clusterID, nodes[i].ID, timeout); err != nil {
+			if err = config.Client.WaitNodeDeleted(orgID, clusterID, nodes[i].ID, timeout); err != nil {
+				log.Println("[DEBUG] Nodepool WaitNodeDeleted failed: %s\n", err)
 				return err
 			}
 		}
+	}
+	// Delete the actual nodepool
+	if err = client.DeleteNodePool(orgID, clusterID, nodepoolID); err != nil {
+		log.Println("[DEBUG] Nodepool DeleteNodePool failed: %s\n", err)
+		return err
 	}
 	log.Println("[DEBUG] NodePool deletion completed")
 	d.SetId("")

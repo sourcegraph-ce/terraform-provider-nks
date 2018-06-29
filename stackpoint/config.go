@@ -5,9 +5,7 @@ import (
 )
 
 type Config struct {
-	Token     string
-	EndPoint  string
-	Client    *stackpointio.APIClient
-	OrgID     int
-	SSHKeyset int
+	Token    string
+	EndPoint string
+	Client   *stackpointio.APIClient
 }
