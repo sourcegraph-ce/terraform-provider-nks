@@ -19,7 +19,7 @@ data "stackpoint_instance_specs" "worker-specs" {
   node_size     = "${var.gce_worker_size}"
 }
 
-resource "stackpoint_cluster" "terraform-do-cluster" {
+resource "stackpoint_cluster" "terraform-cluster" {
   org_id               = "${data.stackpoint_keysets.keyset_default.org_id}"
   cluster_name         = "Test GCE Cluster TerraForm"
   provider_code        = "${var.gce_code}"
@@ -40,7 +40,7 @@ resource "stackpoint_cluster" "terraform-do-cluster" {
 
 resource "stackpoint_master_node" "master2" {
   org_id        = "${data.stackpoint_keysets.keyset_default.org_id}"
-  cluster_id    = "${stackpoint_cluster.terraform-do-cluster.id}"
+  cluster_id    = "${stackpoint_cluster.terraform-cluster.id}"
   provider_code = "${var.gce_code}"
   platform      = "${var.gce_platform}"
   node_size     = "${data.stackpoint_instance_specs.master-specs.node_size}"
@@ -48,7 +48,7 @@ resource "stackpoint_master_node" "master2" {
 
 resource "stackpoint_nodepool" "nodepool2" {
   org_id        = "${data.stackpoint_keysets.keyset_default.org_id}"
-  cluster_id    = "${stackpoint_cluster.terraform-do-cluster.id}"
+  cluster_id    = "${stackpoint_cluster.terraform-cluster.id}"
   provider_code = "${var.gce_code}"
   platform      = "${var.gce_platform}"
   worker_count  = 1

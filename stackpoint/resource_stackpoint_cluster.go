@@ -145,6 +145,13 @@ func resourceStackPointCluster() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"k8s_version_upgrades": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"timeout": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -276,8 +283,7 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 	if v, ok := d.GetOk("timeout"); ok {
 		timeout = v.(int)
 	}
-	err = config.Client.WaitClusterProvisioned(orgID, cluster.ID, timeout)
-	if err != nil {
+	if err = config.Client.WaitClusterRunning(orgID, cluster.ID, false, timeout); err != nil {
 		log.Printf("[DEBUG] Cluster error at WaitClusterProvisioned: %s", err)
 		return err
 	}
@@ -331,17 +337,42 @@ func resourceStackPointClusterRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("platform", cluster.Platform)
 	d.Set("image", cluster.Image)
 	d.Set("channel", cluster.Channel)
+	d.Set("k8s_version_upgrades", cluster.KubernetesMigrationVersions)
 
 	return nil
 }
 
 func resourceStackPointClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	//clusterID, err := strconv.Atoi(d.Id())
-	//if err != nil {
-	//	return err
-	//}
-	//config := meta.(*Config)
-	//orgID := d.Get("org_id").(int)
+	clusterID, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return err
+	}
+	config := meta.(*Config)
+	orgID := d.Get("org_id").(int)
+
+	if d.HasChange("k8s_version") {
+		oldV, newV := d.GetChange("k8s_version")
+		log.Printf("[DEBUG] Cluster has a change in k8s_version, old value %s, new value %s\n", oldV, newV)
+		cluster, err := config.Client.GetCluster(orgID, clusterID)
+		if err != nil {
+			log.Printf("[DEBUG] Cluster in change in k8s_version, could not fetch cluster info: %s\n", err)
+			return err
+		}
+		err = config.Client.UpgradeClusterToVersion(*cluster, newV.(string))
+		if err != nil {
+			log.Printf("[DEBUG] Cluster in change in k8s_version, failed to upgrade cluster: %s\n", err)
+			return err
+		}
+		timeout := int(d.Timeout("Update").Seconds())
+		if v, ok := d.GetOk("timeout"); ok {
+			timeout = v.(int)
+		}
+		if err = config.Client.WaitClusterRunning(orgID, clusterID, false, timeout); err != nil {
+			log.Printf("[DEBUG] Cluster error at WaitClusterDeleted: %s", err)
+			return err
+		}
+		log.Println("[DEBUG] Cluster successfully upgraded k8s_version")
+	}
 
 	return resourceStackPointClusterRead(d, meta)
 }

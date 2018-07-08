@@ -36,11 +36,3 @@ resource "stackpoint_cluster" "terraform-cluster" {
   channel              = "stable"
   ssh_keyset           = "${data.stackpoint_keysets.keyset_default.user_ssh_keyset}"
 }
-
-resource "stackpoint_master_node" "master2" {
-  org_id        = "${data.stackpoint_keysets.keyset_default.org_id}"
-  cluster_id    = "${stackpoint_cluster.terraform-cluster.id}"
-  provider_code = "${var.digitalocean_code}"
-  platform      = "${var.digitalocean_platform}"
-  node_size     = "${data.stackpoint_instance_specs.master-specs.node_size}"
-}

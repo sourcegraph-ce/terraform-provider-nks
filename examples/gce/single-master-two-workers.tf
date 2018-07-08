@@ -19,7 +19,7 @@ data "stackpoint_instance_specs" "worker-specs" {
   node_size     = "${var.gce_worker_size}"
 }
 
-resource "stackpoint_cluster" "terraform-do-cluster" {
+resource "stackpoint_cluster" "terraform-cluster" {
   org_id               = "${data.stackpoint_keysets.keyset_default.org_id}"
   cluster_name         = "Test GCE Cluster TerraForm2"
   provider_code        = "${var.gce_code}"

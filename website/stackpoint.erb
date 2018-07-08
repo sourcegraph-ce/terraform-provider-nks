@@ -1,0 +1,45 @@
+<% wrap_layout :inner do %>
+  <% content_for :sidebar do %>
+    <div class="docs-sidebar hidden-print affix-top" role="complementary">
+      <ul class="nav docs-sidenav">
+        <li<%= sidebar_current("docs-home") %>>
+        <a href="/docs/providers/index.html">All Providers</a>
+                </li>
+
+        <li<%= sidebar_current("docs-stackpoint-index") %>>
+        <a href="/docs/providers/stackpoint/index.html">Stackpoint Provider</a>
+                </li>
+
+        <li<%= sidebar_current("docs-stackpoint-resource") %>>
+        <a href="#">Data Sources</a>
+                <ul class="nav nav-visible">
+                    <li<%= sidebar_current("docs-stackpoint-datasource-instances") %>>
+                        <a href="/docs/providers/stackpoint/d/stackpoint_instances.html">stackpoint_instance_specs</a>
+                    </li>
+                    <li<%= sidebar_current("docs-stackpoint-datasource-keysets") %>>
+                        <a href="/docs/providers/stackpoint/d/stackpoint_keysets.html">stackpoint_keysets</a>
+                    </li>
+                </ul>
+        </a>
+        <a href="#">Resources</a>
+                <ul class="nav nav-visible">
+                    <li<%= sidebar_current("docs-stackpoint-resource-cluster") %>>
+                    <a href="/docs/providers/stackpoint/r/stackpoint_cluster.html">stackpoint_cluster</a>
+                    </li>
+                    <li<%= sidebar_current("docs-stackpoint-resource-masternode") %>>
+                    <a href="/docs/providers/stackpoint/r/stackpoint_masternode.html">stackpoint_masternode</a>
+                    </li>
+					<li<%= sidebar_current("docs-stackpoint-resource-nodepool") %>>
+                    <a href="/docs/providers/stackpoint/r/stackpoint_nodepool.html">stackpoint_nodepool</a>
+                    </li>
+                    <li<%= sidebar_current("docs-stackpoint-resource-solution") %>>
+                    <a href="/docs/providers/stackpoint/r/stackpoint_solution.html">stackpoint_solution</a>
+                    </li>
+        </ul>
+        </li>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= yield %>
+  <% end %>

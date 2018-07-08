@@ -292,7 +292,7 @@ func resourceStackPointNodePoolDelete(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 	// Delete the actual nodepool
-	if err = client.DeleteNodePool(orgID, clusterID, nodepoolID); err != nil {
+	if err = config.Client.DeleteNodePool(orgID, clusterID, nodepoolID); err != nil {
 		log.Println("[DEBUG] Nodepool DeleteNodePool failed: %s\n", err)
 		return err
 	}
