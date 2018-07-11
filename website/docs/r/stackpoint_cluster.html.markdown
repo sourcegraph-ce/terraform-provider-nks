@@ -14,26 +14,28 @@ Creates and manages a cluster in StackPointCloud's system
 
 ```hcl
 resource "stackpoint_cluster" "terraform-cluster" {
-  org_id                = "${data.stackpoint_keysets.keyset_default.org_id}"
-  cluster_name          = "Test AWS Cluster TerraForm"
-  provider_code         = "aws"
-  provider_keyset       = "${data.stackpoint_keysets.keyset_default.aws_keyset}"
-  region                = "us-east-2"
-  k8s_version           = "v1.8.3"
-  startup_master_size   = "${data.stackpoint_instance_specs.master-specs.node_size}"
-  startup_worker_count  = 2
-  startup_worker_size   = "${data.stackpoint_instance_specs.worker-specs.node_size}"
-  zone                  = "us-east-2a"
-  provider_netword_id   = "__new__"
-  provider_network_cidr = "10.0.0.0/16"
-  provider_subnet_id    = "__new__"
-  provider_subnet_cidr  = "10.0.0.0/24"
-  rbac_enabled          = true
-  dashboard_enabled     = true
-  etcd_type             = "classic"
-  platform              = "coreos"
-  channel               = "stable"
-  ssh_keyset            = "${data.stackpoint_keysets.keyset_default.user_ssh_keyset}"
+  org_id                  = "${data.stackpoint_keysets.keyset_default.org_id}"
+  cluster_name            = "Test AWS Cluster TerraForm"
+  provider_code           = "aws"
+  provider_keyset         = "${data.stackpoint_keysets.keyset_default.aws_keyset}"
+  region                  = "us-east-2"
+  k8s_version             = "v1.8.3"
+  startup_master_size     = "${data.stackpoint_instance_specs.master-specs.node_size}"
+  startup_worker_count    = 2
+  startup_worker_size     = "${data.stackpoint_instance_specs.worker-specs.node_size}"
+  zone                    = "us-east-2a"
+  provider_network_id_requested     = "__new__"
+  provider_network_cidr   = "10.0.0.0/16"
+  provider_subnet_id_requested      = "__new__"
+  provider_subnet_cidr    = "10.0.0.0/24"
+  provider_resource_group = "__new__"
+  project_id              = "someproject"
+  rbac_enabled            = true
+  dashboard_enabled       = true
+  etcd_type               = "classic"
+  platform                = "coreos"
+  channel                 = "stable"
+  ssh_keyset              = "${data.stackpoint_keysets.keyset_default.user_ssh_keyset}"
 }
 ```
 
@@ -52,10 +54,18 @@ resource "stackpoint_cluster" "terraform-cluster" {
 * `provider_network_id` - (Optional, will default to "__new__")[string] VPC ID to use for cluster network
 * `provider_network_cidr` - (Required for AWS/Azure)[string] CIDR of VPC network
 * `provider_subnet_id` - (Optional, will default to "__new__")[string] Subnet ID of network to use for cluster
-* `provider_subnet_cidr` - (Required)[string] CIDR of Subnet network
+* `provider_subnet_cidr` - (Required for AWS/Azure)[string] CIDR of Subnet network
+* `provider_resource_group` - (Required for Azure)[string] Azure resource group name
+* `project_id` - (Required for Packet)[string] Packet project ID
 * `rbac_enabled` - (Required)[bool] Enable RBAC for cluster
 * `dashboard_enabled` - (Required)[bool] Enable Kubernetes dashboard
 * `etcd_type` - (Required)[string] Etcd type, classic is recommended
 * `platform` - (Required)[string] Operating system of container
 * `channel` - (Required)[string] Branch of OS to use
 * `ssh_keyset` - (Required)[int] SSH keyset to drop into cluster, usually populated by a reference to a keyset datasource value
+
+## Attributes Reference
+
+ * `cluster_id` - Cluster ID, used by other resources to reference created cluster
+ * `provider_network_id` - VPC ID, might have been newly created if `"__new__"` was used in provider_network_id_requested
+ * `provider_subnet_id` - VPC subnet ID, might have been newly created if `"__new__"` was used in provider_subnet_id_requested

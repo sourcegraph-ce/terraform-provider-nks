@@ -114,10 +114,10 @@ func resourceStackPointMasterNodeCreate(d *schema.ResourceData, meta interface{}
 			newNode.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
 		}
 	}
-	log.Println("[DEBUG] MasterNode update attempting to add master node\n")
+	log.Println("[DEBUG] MasterNode update attempting to add master node")
 	nodes, err := config.Client.AddNode(orgID, clusterID, newNode)
 	if err != nil {
-		log.Println("[DEBUG] MasterNode failed when creating new master node: %s\n", err)
+		log.Printf("[DEBUG] MasterNode failed when creating new master node: %s\n", err)
 		return err
 	}
 	timeout := int(d.Timeout("Create").Seconds())
@@ -125,7 +125,7 @@ func resourceStackPointMasterNodeCreate(d *schema.ResourceData, meta interface{}
 		timeout = v.(int)
 	}
 	if err := config.Client.WaitNodeProvisioned(orgID, clusterID, nodes[0].ID, timeout); err != nil {
-		log.Println("[DEBUG] MasterNode failed when waiting for new master node: %s\n", err)
+		log.Printf("[DEBUG] MasterNode failed when waiting for new master node: %s\n", err)
 		return err
 	}
 
@@ -151,7 +151,7 @@ func resourceStackPointMasterNodeRead(d *schema.ResourceData, meta interface{}) 
 			d.SetId("")
 			return nil
 		}
-		log.Println("[DEBUG] MasterNode GetNode failed in read: %s\n", err)
+		log.Printf("[DEBUG] MasterNode GetNode failed in read: %s\n", err)
 		return err
 	}
 	d.Set("state", node.State)
@@ -183,7 +183,7 @@ func resourceStackPointMasterNodeDelete(d *schema.ResourceData, meta interface{}
 	orgID := d.Get("org_id").(int)
 
 	if err = config.Client.DeleteNode(orgID, clusterID, nodeID); err != nil {
-		log.Println("[DEBUG] MasterNode DeleteNode failed: %s\n", err)
+		log.Printf("[DEBUG] MasterNode DeleteNode failed: %s\n", err)
 		return err
 	}
 	timeout := int(d.Timeout("Delete").Seconds())
@@ -191,7 +191,7 @@ func resourceStackPointMasterNodeDelete(d *schema.ResourceData, meta interface{}
 		timeout = v.(int)
 	}
 	if err = config.Client.WaitNodeDeleted(orgID, clusterID, nodeID, timeout); err != nil {
-		log.Println("[DEBUG] MasterNode WaitNodeDeleted failed when deleting node: %s\n", err)
+		log.Printf("[DEBUG] MasterNode WaitNodeDeleted failed when deleting node: %s\n", err)
 		return err
 	}
 	log.Println("[DEBUG] Master node deletion complete")

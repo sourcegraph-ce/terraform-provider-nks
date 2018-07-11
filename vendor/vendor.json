@@ -3,10 +3,10 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "jWFzD4VYuAG5x4GFMl9AVzcouC0=",
+			"checksumSHA1": "1l/0boY94Z9mDjIbrRUA0fweOQA=",
 			"path": "github.com/StackPointCloud/stackpoint-sdk-go/stackpointio",
-			"revision": "da50176c312bd6ae8c83414ddfb14508e717ed6f",
-			"revisionTime": "2018-07-07T23:27:13Z"
+			"revision": "8a82b0ca1c58b68aaf00426639d3844cdbad2bc4",
+			"revisionTime": "2018-07-11T20:02:58Z"
 		},
 		{
 			"checksumSHA1": "jQh1fnoKPKMURvKkpdRjN695nAQ=",
@@ -229,6 +229,13 @@
 			"checksumSHA1": "gntLgvUzJqZWf4NYxJr3p/3gcvk=",
 			"origin": "github.com/hashicorp/terraform/vendor/github.com/blang/semver",
 			"path": "github.com/blang/semver",
+			"revision": "0cc9e050ecd4a46ba6448758c2edc0b29bef5695",
+			"revisionTime": "2018-05-03T10:44:00Z"
+		},
+		{
+			"checksumSHA1": "/5cvgU+J4l7EhMXTK76KaCAfOuU=",
+			"origin": "github.com/hashicorp/terraform/vendor/github.com/davecgh/go-spew/spew",
+			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "0cc9e050ecd4a46ba6448758c2edc0b29bef5695",
 			"revisionTime": "2018-05-03T10:44:00Z"
 		},
@@ -478,6 +485,13 @@
 			"revisionTime": "2018-05-03T10:44:00Z"
 		},
 		{
+			"checksumSHA1": "vt+P9D2yWDO3gdvdgCzwqunlhxU=",
+			"origin": "github.com/hashicorp/terraform/vendor/github.com/hashicorp/logutils",
+			"path": "github.com/hashicorp/logutils",
+			"revision": "0cc9e050ecd4a46ba6448758c2edc0b29bef5695",
+			"revisionTime": "2018-05-03T10:44:00Z"
+		},
+		{
 			"checksumSHA1": "D2qVXjDywJu6wLj/4NCTsFnRrvw=",
 			"path": "github.com/hashicorp/terraform/config",
 			"revision": "0cc9e050ecd4a46ba6448758c2edc0b29bef5695",
@@ -514,6 +528,12 @@
 			"revisionTime": "2018-05-03T10:44:00Z"
 		},
 		{
+			"checksumSHA1": "uT6Q9RdSRAkDjyUgQlJ2XKJRab4=",
+			"path": "github.com/hashicorp/terraform/helper/config",
+			"revision": "0cc9e050ecd4a46ba6448758c2edc0b29bef5695",
+			"revisionTime": "2018-05-03T10:44:00Z"
+		},
+		{
 			"checksumSHA1": "KNvbU1r5jv0CBeQLnEtDoL3dRtc=",
 			"path": "github.com/hashicorp/terraform/helper/hashcode",
 			"revision": "0cc9e050ecd4a46ba6448758c2edc0b29bef5695",
@@ -522,6 +542,18 @@
 		{
 			"checksumSHA1": "B267stWNQd0/pBTXHfI/tJsxzfc=",
 			"path": "github.com/hashicorp/terraform/helper/hilmapstructure",
+			"revision": "0cc9e050ecd4a46ba6448758c2edc0b29bef5695",
+			"revisionTime": "2018-05-03T10:44:00Z"
+		},
+		{
+			"checksumSHA1": "BAXV9ruAyno3aFgwYI2/wWzB2Gc=",
+			"path": "github.com/hashicorp/terraform/helper/logging",
+			"revision": "0cc9e050ecd4a46ba6448758c2edc0b29bef5695",
+			"revisionTime": "2018-05-03T10:44:00Z"
+		},
+		{
+			"checksumSHA1": "ryCWu7RtMlYrAfSevaI7RtaXe98=",
+			"path": "github.com/hashicorp/terraform/helper/resource",
 			"revision": "0cc9e050ecd4a46ba6448758c2edc0b29bef5695",
 			"revisionTime": "2018-05-03T10:44:00Z"
 		},

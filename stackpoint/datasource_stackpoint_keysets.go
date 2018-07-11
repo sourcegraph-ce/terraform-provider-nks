@@ -57,7 +57,7 @@ func dataSourceStackPointKeysetsRead(d *schema.ResourceData, meta interface{}) e
 	// Fetch userprofile based on API token
 	up, err := config.Client.GetUserProfile()
 	if err != nil {
-		log.Println("[DEBUG] Keysets GetUserProfile failed: %s\n", err)
+		log.Printf("[DEBUG] Keysets GetUserProfile failed: %s\n", err)
 		return err
 	}
 	if up == nil {
@@ -69,7 +69,7 @@ func dataSourceStackPointKeysetsRead(d *schema.ResourceData, meta interface{}) e
 	if _, ok := d.GetOk("org_id"); !ok {
 		orgID, err = config.Client.GetUserProfileDefaultOrg(&up[0])
 		if err != nil {
-			log.Println("[DEBUG] Keysets GetUserProfileDefaultOrg failed: %s\n", err)
+			log.Printf("[DEBUG] Keysets GetUserProfileDefaultOrg failed: %s\n", err)
 			return err
 		}
 		d.Set("org_id", orgID)

@@ -39,24 +39,3 @@ resource "stackpoint_cluster" "terraform-cluster" {
   channel               = "stable"
   ssh_keyset            = "${data.stackpoint_keysets.keyset_default.user_ssh_keyset}"
 }
-
-resource "stackpoint_master_node" "master2" {
-  org_id               = "${data.stackpoint_keysets.keyset_default.org_id}"
-  cluster_id           = "${stackpoint_cluster.terraform-cluster.id}"
-  provider_code        = "${var.aws_code}"
-  platform             = "${var.aws_platform}"
-  zone                 = "${var.aws_zone2}"
-  provider_subnet_cidr = "${var.aws_subnet_cidr2}"
-  node_size            = "${data.stackpoint_instance_specs.master-specs.node_size}"
-}
-
-resource "stackpoint_nodepool" "nodepool2" {
-  org_id               = "${data.stackpoint_keysets.keyset_default.org_id}"
-  cluster_id           = "${stackpoint_cluster.terraform-cluster.id}"
-  provider_code        = "${var.aws_code}"
-  platform             = "${var.aws_platform}"
-  zone                 = "${var.aws_zone2}"
-  provider_subnet_cidr = "${stackpoint_master_node.master2.provider_subnet_cidr}"
-  worker_count         = 1
-  worker_size          = "${data.stackpoint_instance_specs.worker-specs.node_size}"
-}

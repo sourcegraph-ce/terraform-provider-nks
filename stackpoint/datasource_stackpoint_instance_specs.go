@@ -37,7 +37,7 @@ func dataSourceStackPointInstanceSpecsRead(d *schema.ResourceData, meta interfac
 	}
 	mOptions, err := config.Client.GetInstanceSpecs(d.Get("provider_code").(string), endpoint)
 	if err != nil {
-		log.Println("[DEBUG] InstanceSpecs GetInstanceSpecs failed: %s\n", err)
+		log.Printf("[DEBUG] InstanceSpecs GetInstanceSpecs failed: %s\n", err)
 		return err
 	}
 	if !stackpointio.InstanceInList(mOptions, d.Get("node_size").(string)) {

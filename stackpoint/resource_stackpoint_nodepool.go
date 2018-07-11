@@ -125,10 +125,10 @@ func resourceStackPointNodePoolCreate(d *schema.ResourceData, meta interface{}) 
 			newNodepool.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
 		}
 	}
-	log.Println("[DEBUG] Nodepool creation running\n")
+	log.Println("[DEBUG] Nodepool creation running")
 	pool, err := config.Client.CreateNodePool(orgID, clusterID, newNodepool)
 	if err != nil {
-		log.Println("[DEBUG] Nodepool creation failed: %s\n", err)
+		log.Printf("[DEBUG] Nodepool creation failed: %s\n", err)
 		return err
 	}
 	timeout := int(d.Timeout("Create").Seconds())
@@ -144,12 +144,12 @@ func resourceStackPointNodePoolCreate(d *schema.ResourceData, meta interface{}) 
 	// so wait for new nodes to provision
 	nodes, err := config.Client.GetNodesInPool(orgID, clusterID, pool.ID)
 	if err != nil {
-		log.Println("[DEBUG] Nodepool GetNodesInPool failed: %s\n", err)
+		log.Printf("[DEBUG] Nodepool GetNodesInPool failed: %s\n", err)
 		return err
 	}
 	for i := 0; i < len(nodes); i++ {
 		if err = config.Client.WaitNodeProvisioned(orgID, clusterID, nodes[i].ID, timeout); err != nil {
-			log.Println("[DEBUG] Nodepool WaitNodeProvisioned failed: %s\n", err)
+			log.Printf("[DEBUG] Nodepool WaitNodeProvisioned failed: %s\n", err)
 			return err
 		}
 	}
@@ -176,7 +176,7 @@ func resourceStackPointNodePoolRead(d *schema.ResourceData, meta interface{}) er
 			d.SetId("")
 			return nil
 		}
-		log.Println("[DEBUG] Nodepool GetNodePool failed: %s\n", err)
+		log.Printf("[DEBUG] Nodepool GetNodePool failed: %s\n", err)
 		return err
 	}
 	d.Set("state", nodepool.State)
@@ -212,7 +212,7 @@ func resourceStackPointNodePoolUpdate(d *schema.ResourceData, meta interface{}) 
 			// Decrease worker count, try to cull the herd to match wanted value
 			nodes, err := config.Client.GetNodesInPool(orgID, clusterID, nodepoolID)
 			if err != nil {
-				log.Println("[DEBUG] Nodepool GetNodesInPool failed: %s\n", err)
+				log.Printf("[DEBUG] Nodepool GetNodesInPool failed: %s\n", err)
 				return err
 			}
 			workerCount := len(nodes)
@@ -220,7 +220,7 @@ func resourceStackPointNodePoolUpdate(d *schema.ResourceData, meta interface{}) 
 			// Delete only as many workers (from workerCount) as it takes to get down to wanted value (newVi)
 			for i := 0; i < (workerCount - newVi); i++ {
 				if err = config.Client.DeleteNode(orgID, clusterID, nodes[i].ID); err != nil {
-					log.Println("[DEBUG] Nodepool DeleteNode failed: %s\n", err)
+					log.Printf("[DEBUG] Nodepool DeleteNode failed: %s\n", err)
 					return err
 				}
 				timeout := int(d.Timeout("Delete").Seconds())
@@ -228,7 +228,7 @@ func resourceStackPointNodePoolUpdate(d *schema.ResourceData, meta interface{}) 
 					timeout = v.(int)
 				}
 				if err = config.Client.WaitNodeDeleted(orgID, clusterID, nodes[i].ID, timeout); err != nil {
-					log.Println("[DEBUG] Nodepool WaitNodeDeleted failed: %s\n", err)
+					log.Printf("[DEBUG] Nodepool WaitNodeDeleted failed: %s\n", err)
 					return err
 				}
 			}
@@ -241,7 +241,7 @@ func resourceStackPointNodePoolUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 			nodes, err := config.Client.AddNodesToNodePool(orgID, clusterID, nodepoolID, newNode)
 			if err != nil {
-				log.Println("[DEBUG] Nodepool AddNodesToNodePool failed: %s\n", err)
+				log.Printf("[DEBUG] Nodepool AddNodesToNodePool failed: %s\n", err)
 				return err
 			}
 			for i := 0; i < len(nodes); i++ {
@@ -250,7 +250,7 @@ func resourceStackPointNodePoolUpdate(d *schema.ResourceData, meta interface{}) 
 					timeout = v.(int)
 				}
 				if err = config.Client.WaitNodeProvisioned(orgID, clusterID, nodes[i].ID, timeout); err != nil {
-					log.Println("[DEBUG] Nodepool WaitNodeProvisioned failed: %s\n", err)
+					log.Printf("[DEBUG] Nodepool WaitNodeProvisioned failed: %s\n", err)
 					return err
 				}
 			}
@@ -271,14 +271,14 @@ func resourceStackPointNodePoolDelete(d *schema.ResourceData, meta interface{}) 
 	// Gather list of nodes, delete them all before calling for nodepool deletion
 	nodes, err := config.Client.GetNodesInPool(orgID, clusterID, nodepoolID)
 	if err != nil {
-		log.Println("[DEBUG] Nodepool GetNodesInPool failed in deletion: %s\n", err)
+		log.Printf("[DEBUG] Nodepool GetNodesInPool failed in deletion: %s\n", err)
 		return err
 	}
 	for i := 0; i < len(nodes); i++ {
 		// Delete node if active
 		if nodes[i].State == stackpointio.NodeRunningStateString {
 			if err = config.Client.DeleteNode(orgID, clusterID, nodes[i].ID); err != nil {
-				log.Println("[DEBUG] Nodepool DeleteNode failed: %s\n", err)
+				log.Printf("[DEBUG] Nodepool DeleteNode failed: %s\n", err)
 				return err
 			}
 			timeout := int(d.Timeout("Delete").Seconds())
@@ -286,17 +286,17 @@ func resourceStackPointNodePoolDelete(d *schema.ResourceData, meta interface{}) 
 				timeout = v.(int)
 			}
 			if err = config.Client.WaitNodeDeleted(orgID, clusterID, nodes[i].ID, timeout); err != nil {
-				log.Println("[DEBUG] Nodepool WaitNodeDeleted failed: %s\n", err)
+				log.Printf("[DEBUG] Nodepool WaitNodeDeleted failed: %s\n", err)
 				return err
 			}
 		}
 	}
 	// Delete the actual nodepool
 	if err = config.Client.DeleteNodePool(orgID, clusterID, nodepoolID); err != nil {
-		log.Println("[DEBUG] Nodepool DeleteNodePool failed: %s\n", err)
+		log.Printf("[DEBUG] Nodepool DeleteNodePool failed: %s\n", err)
 		return err
 	}
-	log.Println("[DEBUG] NodePool deletion completed")
+	log.Printf("[DEBUG] NodePool deletion completed")
 	d.SetId("")
 	return nil
 }
