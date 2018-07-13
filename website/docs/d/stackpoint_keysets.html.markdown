@@ -3,7 +3,7 @@ layout: "stackpoint"
 page_title: "StackPoint : stackpoint_keysets"
 sidebar_current: "docs-stackpoint-keysets"
 description: |-
-  Get information on a StackPoint keysets
+  Get information on StackPoint keysets
 ---
 
 # stackpoint\_keysets
@@ -24,11 +24,11 @@ data "stackpoint_keysets" "keyset_default" {
 
 ## Attributes Reference
 
- * `org_id` - Organization ID, used for the creation of most resources
  * `aws_keyset` - AWS keyset, if configured, for building resources on AWS infrastructure
  * `do_keyset` - DigitalOcean keyset, if configured, for building resources on DigitalOcean infrastructure
  * `gce_keyset` - GCE keyset, if configured, for building resources on GCE infrastructure
  * `gke_keyset` - GKE keyset, if configured, for building resources on GKE infrastructure
- * `oneandone_keyset` -	OneAndOne keyset, if configured, for building resources on OneAndOne infrastructure
+ * `oneandone_keyset` - OneAndOne keyset, if configured, for building resources on OneAndOne infrastructure
+ * `org_id` - Organization ID, used for the creation of most resources
  * `packet_keyset` - Packet keyset, if configured, for building resources on Packet infrastructure
  * `user_ssh_keyset` - Your SSH keyset, which will be used on any nodes built

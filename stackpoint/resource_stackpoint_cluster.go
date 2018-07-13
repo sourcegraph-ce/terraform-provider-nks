@@ -85,9 +85,13 @@ func resourceStackPointCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"provider_resource_group": {
+			"provider_resource_group_requested": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			"provider_resource_group": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"provider_network_id_requested": {
 				Type:     schema.TypeString,
@@ -223,8 +227,11 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 		}
 		newCluster.Region = d.Get("region").(string)
 	} else if d.Get("provider_code").(string) == "azure" {
-		if _, ok := d.GetOk("provider_resource_group"); !ok {
-			return fmt.Errorf("StackPoint needs provider_resource_group for Azure clusters.")
+		// Allow user to submit values for provider_resource_group_requested, and put real value in computed provider_resource_group
+		if _, ok := d.GetOk("provider_resource_group_requested"); !ok {
+			newCluster.ProviderResourceGp = "__new__"
+		} else {
+			newCluster.ProviderResourceGp = d.Get("provider_resource_group_requested").(string)
 		}
 		if _, ok := d.GetOk("region"); !ok {
 			return fmt.Errorf("StackPoint needs region for Azure clusters.")
@@ -251,7 +258,6 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 		} else {
 			newCluster.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
 		}
-		newCluster.ProviderResourceGp = d.Get("provider_resource_group").(string)
 		newCluster.Region = d.Get("region").(string)
 	} else if d.Get("provider_code").(string) == "packet" {
 		if _, ok := d.GetOk("region"); !ok {

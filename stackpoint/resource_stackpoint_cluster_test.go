@@ -12,9 +12,11 @@ import (
 
 func TestAccStackPointCluster_basic(t *testing.T) {
 	var cluster stackpointio.Cluster
-	nodeSize := "n1-standard-1"
+	nodeSize := "standard_f1"
 	clusterName := "TerraForm AccTest"
-	region := "us-west1-a"
+	region := "eastus"
+	vpcCIDR := "10.0.0.0/16"
+	subnetCIDR := "10.0.0.0/24"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -30,6 +32,8 @@ func TestAccStackPointCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.stackpoint_instance_specs.worker-specs", "node_size", nodeSize),
 					resource.TestCheckResourceAttr("stackpoint_cluster.terraform-cluster", "cluster_name", clusterName),
 					resource.TestCheckResourceAttr("stackpoint_cluster.terraform-cluster", "region", region),
+					resource.TestCheckResourceAttr("stackpoint_cluster.terraform-cluster", "provider_network_cidr", vpcCIDR),
+					resource.TestCheckResourceAttr("stackpoint_cluster.terraform-cluster", "provider_subnet_cidr", subnetCIDR),
 					testAccCheckStackPointClusterExists("stackpoint_cluster.terraform-cluster", &cluster),
 				),
 			},
@@ -96,28 +100,30 @@ data "stackpoint_keysets" "keyset_default" {
 
 }
 data "stackpoint_instance_specs" "master-specs" {
-  provider_code = "gce"
+  provider_code = "azure"
   node_size     = "%s"
 }
 data "stackpoint_instance_specs" "worker-specs" {
-  provider_code = "gce"
+  provider_code = "azure"
   node_size     = "${data.stackpoint_instance_specs.master-specs.node_size}"
 }
 resource "stackpoint_cluster" "terraform-cluster" {
-  org_id                = "${data.stackpoint_keysets.keyset_default.org_id}"
-  cluster_name          = "%s"
-  provider_code         = "gce"
-  provider_keyset       = "${data.stackpoint_keysets.keyset_default.gce_keyset}"
-  region                = "%s"
-  k8s_version           = "v1.9.6"
-  startup_master_size   = "${data.stackpoint_instance_specs.master-specs.node_size}"
-  startup_worker_count  = 2
-  startup_worker_size   = "${data.stackpoint_instance_specs.worker-specs.node_size}"
-  rbac_enabled          = true
-  dashboard_enabled     = true
-  etcd_type             = "classic"
-  platform              = "coreos"
-  channel               = "stable"
-  ssh_keyset            = "${data.stackpoint_keysets.keyset_default.user_ssh_keyset}"
+  org_id                  = "${data.stackpoint_keysets.keyset_default.org_id}"
+  cluster_name            = "%s"
+  provider_code           = "azure"
+  provider_keyset         = "${data.stackpoint_keysets.keyset_default.azure_keyset}"
+  region                  = "%s"
+  k8s_version             = "v1.9.6"
+  startup_master_size     = "${data.stackpoint_instance_specs.master-specs.node_size}"
+  startup_worker_count    = 2
+  startup_worker_size     = "${data.stackpoint_instance_specs.worker-specs.node_size}"
+  provider_network_cidr   = "10.0.0.0/16"
+  provider_subnet_cidr    = "10.0.0.0/24"
+  rbac_enabled            = true
+  dashboard_enabled       = true
+  etcd_type               = "classic"
+  platform                = "coreos"
+  channel                 = "stable"
+  ssh_keyset              = "${data.stackpoint_keysets.keyset_default.user_ssh_keyset}"
 }
 `

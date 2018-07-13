@@ -56,8 +56,8 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 }
 
 var resourceDefaultTimeouts = schema.ResourceTimeout{
-	Create:  schema.DefaultTimeout(30 * time.Minute),
-	Update:  schema.DefaultTimeout(30 * time.Minute),
-	Delete:  schema.DefaultTimeout(30 * time.Minute),
-	Default: schema.DefaultTimeout(30 * time.Minute),
+	Create:  schema.DefaultTimeout(40 * time.Minute),
+	Update:  schema.DefaultTimeout(40 * time.Minute),
+	Delete:  schema.DefaultTimeout(40 * time.Minute),
+	Default: schema.DefaultTimeout(40 * time.Minute),
 }

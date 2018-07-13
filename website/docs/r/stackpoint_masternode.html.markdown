@@ -26,10 +26,10 @@ resource "stackpoint_master_node" "master2" {
 
 ## Argument reference
 
-* `org_id` - (Required)[int] Organization ID, usually populated by a reference to a keyset datasource value
 * `cluster_id` - (Required)[int] Cluster ID, usually populated by a reference to a cluster resource value
-* `provider_code` - (Required)[string] Cloud provider code string
-* `platform` - (Required)[string] Operating system of container
-* `zone` - (Required for AWS)[string] Cloud provider zone where cluster will be built
-* `provider_subnet_cidr` - (Required for AWS/Azure)[string] CIDR of Subnet network
 * `node_size` - (Required)[string] Node size, usually populated by a reference to an instance spec value
+* `org_id` - (Required)[int] Organization ID, usually populated by a reference to a keyset datasource value
+* `platform` - (Required)[string] Operating system of container
+* `provider_code` - (Required)[string] Cloud provider code string
+* `provider_subnet_cidr` - (Required for AWS/Azure)[string] CIDR of Subnet network
+* `zone` - (Required for AWS)[string] Cloud provider zone where cluster will be built

@@ -23,7 +23,7 @@ resource "stackpoint_solution" "jenkins" {
 
 ## Argument reference
 
-* `org_id` - (Required)[int] Organization ID, usually populated by a reference to a keyset datasource value
 * `cluster_id` - (Required)[int] Cluster ID, usually populated by a reference to a cluster resource value
-* `solution` - (Required)[string] Solution name
 * `config` - (Optional)[file] Config file for solutions that require JSON configuration file
+* `org_id` - (Required)[int] Organization ID, usually populated by a reference to a keyset datasource value
+* `solution` - (Required)[string] Solution name
