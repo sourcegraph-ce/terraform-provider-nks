@@ -20,22 +20,22 @@ data "stackpoint_instance_specs" "worker-specs" {
 }
 
 resource "stackpoint_cluster" "terraform-cluster" {
-  org_id                  = "${data.stackpoint_keysets.keyset_default.org_id}"
-  cluster_name            = "Test Azure Cluster TerraForm"
-  provider_code           = "${var.azure_code}"
-  provider_keyset         = "${data.stackpoint_keysets.keyset_default.azure_keyset}"
-  region                  = "${var.azure_region}"
-  k8s_version             = "${var.azure_k8s_version}"
-  startup_master_size     = "${data.stackpoint_instance_specs.master-specs.node_size}"
-  startup_worker_count    = 2
-  startup_worker_size     = "${data.stackpoint_instance_specs.worker-specs.node_size}"
-  provider_resource_group = "${var.azure_resource_group}"
-  rbac_enabled            = true
-  dashboard_enabled       = true
-  etcd_type               = "classic"
-  platform                = "${var.azure_platform}"
-  channel                 = "stable"
-  ssh_keyset              = "${data.stackpoint_keysets.keyset_default.user_ssh_keyset}"
+  org_id                            = "${data.stackpoint_keysets.keyset_default.org_id}"
+  cluster_name                      = "Test Azure Cluster TerraForm"
+  provider_code                     = "${var.azure_code}"
+  provider_keyset                   = "${data.stackpoint_keysets.keyset_default.azure_keyset}"
+  region                            = "${var.azure_region}"
+  k8s_version                       = "${var.azure_k8s_version}"
+  startup_master_size               = "${data.stackpoint_instance_specs.master-specs.node_size}"
+  startup_worker_count              = 2
+  startup_worker_size               = "${data.stackpoint_instance_specs.worker-specs.node_size}"
+  provider_resource_group_requested = "${var.azure_resource_group}"
+  rbac_enabled                      = true
+  dashboard_enabled                 = true
+  etcd_type                         = "classic"
+  platform                          = "${var.azure_platform}"
+  channel                           = "stable"
+  ssh_keyset                        = "${data.stackpoint_keysets.keyset_default.user_ssh_keyset}"
 }
 
 resource "stackpoint_master_node" "master2" {

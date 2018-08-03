@@ -31,8 +31,7 @@ website/node_modules
 .glide/
 
 main.tf
-variables.tf
-variables.tf.LOCAL
+vars.tf
 terraform-provider-stackpoint
 
 website/vendor
