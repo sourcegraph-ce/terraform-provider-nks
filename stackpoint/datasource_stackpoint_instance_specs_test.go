@@ -7,7 +7,7 @@ import (
 )
 
 func TestAccDataSourceInstanceSpecs_lookup(t *testing.T) {
-	nodeSize := "n1-standard-1"
+	nodeSize := "standard_f1"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -28,7 +28,7 @@ func TestAccDataSourceInstanceSpecs_lookup(t *testing.T) {
 
 const testAccDataSourceInstanceSpecs_lookup = `
 data "stackpoint_instance_specs" "master-specs" {
-  provider_code = "gce"
+  provider_code = "azure"
   node_size     = "%s"
 }
 `
