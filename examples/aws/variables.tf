@@ -6,7 +6,7 @@ variable "aws_code" {
 
 variable "aws_k8s_version" {
   description = "AWS kubernetes version"
-  default     = "v1.8.3"
+  default     = "v1.11.1"
 }
 
 variable "aws_platform" {

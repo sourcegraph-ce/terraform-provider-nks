@@ -3,11 +3,12 @@ package stackpoint
 import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/resource"
+	"os"
 	"testing"
 )
 
 func TestAccDataSourceKeysets_lookup(t *testing.T) {
-	orgID := "111"
+	orgID := os.Getenv("SPC_ORG_ID")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {

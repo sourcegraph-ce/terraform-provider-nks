@@ -124,6 +124,7 @@ resource "stackpoint_cluster" "terraform-cluster" {
   etcd_type               = "classic"
   platform                = "coreos"
   channel                 = "stable"
+  timeout                 = 1800
   ssh_keyset              = "${data.stackpoint_keysets.keyset_default.user_ssh_keyset}"
 }
 `
