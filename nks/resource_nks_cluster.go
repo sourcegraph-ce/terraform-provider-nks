@@ -1,6 +1,7 @@
 package stackpoint
 
 import (
+	"encoding/json"
 	"log"
 	"strconv"
 	"strings"
@@ -351,15 +352,12 @@ func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	// Do cluster creation call
 	cluster, err := config.Client.CreateCluster(orgID, newCluster)
 
-	// reqJSON, _ := json.Marshal(newCluster)
-	// resJSON, _ := json.Marshal(cluster)
-
-	// log.Println("[DEBUG] Cluster create request", string(reqJSON))
-	// log.Println("[DEBUG] Cluster create response", string(resJSON))
-
 	// Don't bail until request and response are logged above
 	if err != nil {
-		log.Printf("[DEBUG] Cluster error at CreateCluster: %s", err)
+		reqJSON, _ := json.Marshal(newCluster)
+		log.Printf("[DEBUG] Cluster error at CreateCluster: Error: %s", err)
+		log.Printf("[DEBUG] Request: %s", string(reqJSON))
+
 		return err
 	}
 
@@ -375,7 +373,7 @@ func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	// Set ID in TF
 	d.SetId(strconv.Itoa(cluster.ID))
 
-	return resourceNKSClusterRead(d, meta)
+	return nil //resourceNKSClusterRead(d, meta)
 }
 
 func resourceNKSClusterRead(d *schema.ResourceData, meta interface{}) error {
