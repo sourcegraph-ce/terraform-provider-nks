@@ -3,11 +3,12 @@ package stackpoint
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
-	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func resourceStackPointCluster() *schema.Resource {
@@ -22,10 +23,6 @@ func resourceStackPointCluster() *schema.Resource {
 				Required: true,
 			},
 			"cluster_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"provider_code": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -73,19 +70,11 @@ func resourceStackPointCluster() *schema.Resource {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			"region": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"zone": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"project_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"provider_resource_group_requested": {
+			"region": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -158,6 +147,91 @@ func resourceStackPointCluster() *schema.Resource {
 			},
 			"timeout": {
 				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"aws": {
+				Type:          schema.TypeSet,
+				Optional:      true,
+				ConflictsWith: []string{"do", "packet"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"region": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"zone": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"provider_network_id_requested": {
+							Type:     schema.TypeString,
+							Default:  "__new__",
+							Optional: true,
+						},
+						"provider_network_cidr": {
+							Type:     schema.TypeString,
+							Default:  "10.0.0.0/16",
+							Optional: true,
+						},
+						"provider_subnet_cidr": {
+							Type:     schema.TypeString,
+							Default:  "10.0.0.0/16",
+							Optional: true,
+						},
+						"provider_subnet_id_requested": {
+							Type:     schema.TypeString,
+							Default:  "__new__",
+							Optional: true,
+						},
+
+						"provider_resource_group": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"provider_network_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"provider_subnet_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"do": {
+				Type:          schema.TypeSet,
+				Optional:      true,
+				ConflictsWith: []string{"aws", "packet"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"region": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+			"packet": {
+				Type:          schema.TypeSet,
+				Optional:      true,
+				ConflictsWith: []string{"aws", "do"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"region": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"project_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			"provider_resource_group_requested": {
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 		},
