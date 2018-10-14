@@ -2,9 +2,10 @@ package stackpoint
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/resource"
 	"os"
 	"testing"
+
+	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccDataSourceKeysets_lookup(t *testing.T) {
@@ -19,7 +20,7 @@ func TestAccDataSourceKeysets_lookup(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccDataSourceStackPointKeysets_lookup, orgID),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.stackpoint_keysets.keyset-default", "org_id", orgID),
+					resource.TestCheckResourceAttr("data.nks_keysets.keyset-default", "org_id", orgID),
 				),
 			},
 		},
@@ -27,7 +28,7 @@ func TestAccDataSourceKeysets_lookup(t *testing.T) {
 }
 
 const testAccDataSourceStackPointKeysets_lookup = `
-data "stackpoint_keysets" "keyset-default" {
+data "nks_keysets" "keyset-default" {
   org_id = "%s"
 }
 `

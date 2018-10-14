@@ -2,12 +2,13 @@ package stackpoint
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"strconv"
+
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func dataSourceStackPointKeysets() *schema.Resource {
+func dataSourceNKSKeysets() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceStackPointKeysetsRead,
 		Schema: map[string]*schema.Schema{

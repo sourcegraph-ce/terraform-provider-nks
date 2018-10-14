@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func resourceStackPointCluster() *schema.Resource {
+func resourceNKSCluster() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceStackPointClusterCreate,
 		Read:   resourceStackPointClusterRead,

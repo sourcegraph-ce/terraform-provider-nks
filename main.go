@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/StackPointCloud/terraform-provider-stackpoint/stackpoint"
+	"github.com/StackPointCloud/terraform-provider-nks/stackpoint"
 	"github.com/hashicorp/terraform/plugin"
 )
 

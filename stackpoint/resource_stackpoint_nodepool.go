@@ -2,14 +2,15 @@ package stackpoint
 
 import (
 	"fmt"
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
-	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func resourceStackPointNodePool() *schema.Resource {
+func resourceNKSNodePool() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceStackPointNodePoolCreate,
 		Read:   resourceStackPointNodePoolRead,

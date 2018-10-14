@@ -2,14 +2,15 @@ package stackpoint
 
 import (
 	"fmt"
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
-	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func resourceStackPointMasterNode() *schema.Resource {
+func resourceNKSMasterNode() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceStackPointMasterNodeCreate,
 		Read:   resourceStackPointMasterNodeRead,

@@ -2,12 +2,13 @@ package stackpoint
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
 	"github.com/hashicorp/terraform/helper/schema"
-	"log"
 )
 
-func dataSourceStackPointInstanceSpecs() *schema.Resource {
+func dataSourceNKSInstanceSpecs() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceStackPointInstanceSpecsRead,
 		Schema: map[string]*schema.Schema{
