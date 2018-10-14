@@ -12,10 +12,10 @@ import (
 
 func resourceNKSCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceStackPointClusterCreate,
-		Read:   resourceStackPointClusterRead,
-		Update: resourceStackPointClusterUpdate,
-		Delete: resourceStackPointClusterDelete,
+		Create: resourceNKSClusterCreate,
+		Read:   resourceNKSClusterRead,
+		Update: resourceNKSClusterUpdate,
+		Delete: resourceNKSClusterDelete,
 		Schema: map[string]*schema.Schema{
 			"org_id": {
 				Type:     schema.TypeInt,
@@ -239,7 +239,7 @@ func resourceNKSCluster() *schema.Resource {
 	}
 }
 
-func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client for API
 	// config := meta.(*Config)
 	// orgID := d.Get("org_id").(int)
@@ -391,10 +391,10 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 	// d.SetId(strconv.Itoa(cluster.ID))
 	d.SetId("1234")
 
-	return nil //resourceStackPointClusterRead(d, meta)
+	return nil //resourceNKSClusterRead(d, meta)
 }
 
-func resourceStackPointClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clusterID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return err
@@ -443,7 +443,7 @@ func resourceStackPointClusterRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceStackPointClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	clusterID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return err
@@ -475,10 +475,10 @@ func resourceStackPointClusterUpdate(d *schema.ResourceData, meta interface{}) e
 		log.Println("[DEBUG] Cluster successfully upgraded k8s_version")
 	}
 
-	return resourceStackPointClusterRead(d, meta)
+	return resourceNKSClusterRead(d, meta)
 }
 
-func resourceStackPointClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	clusterID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return err

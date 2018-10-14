@@ -10,7 +10,7 @@ import (
 
 func dataSourceNKSKeysets() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceStackPointKeysetsRead,
+		Read: dataSourceNKSKeysetsRead,
 		Schema: map[string]*schema.Schema{
 			"org_id": {
 				Type:     schema.TypeInt,
@@ -52,7 +52,7 @@ func dataSourceNKSKeysets() *schema.Resource {
 	}
 }
 
-func dataSourceStackPointKeysetsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNKSKeysetsRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 
 	// Fetch userprofile based on API token
@@ -62,7 +62,7 @@ func dataSourceStackPointKeysetsRead(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 	if up == nil {
-		return fmt.Errorf("Could not fetch user profile, cannot proceed with keyset import from StackPointCloud\n")
+		return fmt.Errorf("Could not fetch user profile, cannot proceed with keyset import from NKSCloud\n")
 	}
 
 	// Use supplied org ID or fetch org ID from userprofile

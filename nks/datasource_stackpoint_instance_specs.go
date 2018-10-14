@@ -10,7 +10,7 @@ import (
 
 func dataSourceNKSInstanceSpecs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceStackPointInstanceSpecsRead,
+		Read: dataSourceNKSInstanceSpecsRead,
 		Schema: map[string]*schema.Schema{
 			"provider_code": {
 				Type:     schema.TypeString,
@@ -28,7 +28,7 @@ func dataSourceNKSInstanceSpecs() *schema.Resource {
 	}
 }
 
-func dataSourceStackPointInstanceSpecsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceNKSInstanceSpecsRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 
 	// Grab machine size values for provider, using optional endpoint if needed (sometimes different machines loaded on staging vs prod)

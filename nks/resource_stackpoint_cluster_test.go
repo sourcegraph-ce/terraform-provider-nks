@@ -23,10 +23,10 @@ func TestAccStackPointCluster_basic(t *testing.T) {
 			testAccPreCheck(t)
 		},
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDStackPointClusterDestroyCheck,
+		CheckDestroy: testAccCheckDNKSClusterDestroyCheck,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccStackPointCluster_basic, nodeSize, clusterName, region),
+				Config: fmt.Sprintf(testAccNKSCluster_basic, nodeSize, clusterName, region),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.nks_instance_specs.master-specs", "node_size", nodeSize),
 					resource.TestCheckResourceAttr("data.nks_instance_specs.worker-specs", "node_size", nodeSize),
@@ -34,14 +34,14 @@ func TestAccStackPointCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("nks_cluster.terraform-cluster", "region", region),
 					resource.TestCheckResourceAttr("nks_cluster.terraform-cluster", "provider_network_cidr", vpcCIDR),
 					resource.TestCheckResourceAttr("nks_cluster.terraform-cluster", "provider_subnet_cidr", subnetCIDR),
-					testAccCheckStackPointClusterExists("nks_cluster.terraform-cluster", &cluster),
+					testAccCheckNKSClusterExists("nks_cluster.terraform-cluster", &cluster),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckDStackPointClusterDestroyCheck(s *terraform.State) error {
+func testAccCheckDNKSClusterDestroyCheck(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "nks_cluster" {
 			continue
@@ -63,7 +63,7 @@ func testAccCheckDStackPointClusterDestroyCheck(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckStackPointClusterExists(n string, cl *stackpointio.Cluster) resource.TestCheckFunc {
+func testAccCheckNKSClusterExists(n string, cl *stackpointio.Cluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -95,7 +95,7 @@ func testAccCheckStackPointClusterExists(n string, cl *stackpointio.Cluster) res
 	}
 }
 
-const testAccStackPointCluster_basic = `
+const testAccNKSCluster_basic = `
 data "nks_keysets" "keyset_default" {
 
 }

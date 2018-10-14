@@ -18,7 +18,7 @@ func TestAccDataSourceKeysets_lookup(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccDataSourceStackPointKeysets_lookup, orgID),
+				Config: fmt.Sprintf(testAccDataSourceNKSKeysets_lookup, orgID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.nks_keysets.keyset-default", "org_id", orgID),
 				),
@@ -27,7 +27,7 @@ func TestAccDataSourceKeysets_lookup(t *testing.T) {
 	})
 }
 
-const testAccDataSourceStackPointKeysets_lookup = `
+const testAccDataSourceNKSKeysets_lookup = `
 data "nks_keysets" "keyset-default" {
   org_id = "%s"
 }
