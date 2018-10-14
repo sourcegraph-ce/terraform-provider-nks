@@ -2,7 +2,6 @@ package stackpoint
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -150,9 +149,10 @@ func resourceStackPointCluster() *schema.Resource {
 				Optional: true,
 			},
 			"aws": {
-				Type:          schema.TypeSet,
+				Type:          schema.TypeList,
 				Optional:      true,
 				ConflictsWith: []string{"do", "packet"},
+				MaxItems:      1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"region": {
@@ -196,13 +196,18 @@ func resourceStackPointCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"provider_resource_group_requested": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 					},
 				},
 			},
 			"do": {
-				Type:          schema.TypeSet,
+				Type:          schema.TypeList,
 				Optional:      true,
 				ConflictsWith: []string{"aws", "packet"},
+				MaxItems:      1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"region": {
@@ -213,9 +218,10 @@ func resourceStackPointCluster() *schema.Resource {
 				},
 			},
 			"packet": {
-				Type:          schema.TypeSet,
+				Type:          schema.TypeList,
 				Optional:      true,
 				ConflictsWith: []string{"aws", "do"},
+				MaxItems:      1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"region": {
@@ -229,25 +235,20 @@ func resourceStackPointCluster() *schema.Resource {
 					},
 				},
 			},
-
-			"provider_resource_group_requested": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 		},
 	}
 }
 
 func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client for API
-	config := meta.(*Config)
-	orgID := d.Get("org_id").(int)
+	// config := meta.(*Config)
+	// orgID := d.Get("org_id").(int)
 	sshKeyID := d.Get("ssh_keyset").(int)
 
 	// Set up cluster structure based on input from user
 	newCluster := stackpointio.Cluster{
-		Name:              d.Get("cluster_name").(string),
-		Provider:          d.Get("provider_code").(string),
+		Name: d.Get("cluster_name").(string),
+		// Provider:          d.Get("provider_code").(string),
 		ProviderKey:       d.Get("provider_keyset").(int),
 		MasterCount:       1,
 		MasterSize:        d.Get("startup_master_size").(string),
@@ -262,115 +263,135 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 		SSHKeySet:         sshKeyID,
 		Solutions:         []stackpointio.Solution{}, // helm_tiller will get automatically installed
 	}
-	// Grab provider-specific fields
-	if d.Get("provider_code").(string) == "aws" {
-		if _, ok := d.GetOk("region"); !ok {
-			return fmt.Errorf("StackPoint needs region for AWS clusters.")
-		}
-		if _, ok := d.GetOk("zone"); !ok {
-			return fmt.Errorf("StackPoint needs zone for AWS clusters.")
-		}
+
+	if _, ok := d.GetOk("aws"); ok {
+
+		// aaws := temp.(*schema.Set)
+		// for _, v := range aaws {
+		// 	log.Println("[DEBUG] *********** AWS", v)
+
+		// }
+		// log.Println("[DEBUG] *********** AWS", aaws)
+		// for k, v := range aws {
+		// 	log.Println("[DEBUG]", k, v)
+		// }
+		// log.Println("[DEBUG] *********** AWS")
+		newCluster.Region = d.Get("aws.0.region").(string)
+
+		newCluster.Zone = d.Get("aws.0.zone").(string)
+		log.Println("[DEBUG] *********** ZONE", d.Get("aws.0.zone"))
+		log.Println("[DEBUG] *********** REGION", d.Get("aws.0.region"))
+
 		// Allow user to submit values for provider_network_id_requested, and put real value in computed provider_network_id
-		if _, ok := d.GetOk("provider_network_id_requested"); !ok {
+		if temp, ok := d.GetOk("aws.0.provider_network_id_requested"); !ok {
 			newCluster.ProviderNetworkID = "__new__"
 		} else {
-			newCluster.ProviderNetworkID = d.Get("provider_network_id_requested").(string)
+			newCluster.ProviderNetworkID = temp.(string)
 		}
-		if _, ok := d.GetOk("provider_network_cidr"); !ok {
+		if temp, ok := d.GetOk("aws.0.provider_network_cidr"); !ok {
 			newCluster.ProviderNetworkCdr = "10.0.0.0/16"
 		} else {
-			newCluster.ProviderNetworkCdr = d.Get("provider_network_cidr").(string)
+			newCluster.ProviderNetworkCdr = temp.(string)
 		}
+
 		// Allow user to submit values for provider_subnet_id_requested, and put real value in computed provider_subnet_id
-		if _, ok := d.GetOk("provider_subnet_id_requested"); !ok {
+		if temp, ok := d.GetOk("aws.0.provider_subnet_id_requested"); !ok {
 			newCluster.ProviderSubnetID = "__new__"
 		} else {
-			newCluster.ProviderSubnetID = d.Get("provider_subnet_id_requested").(string)
+			newCluster.ProviderSubnetID = temp.(string)
 		}
-		if _, ok := d.GetOk("provider_subnet_cidr"); !ok {
+		if temp, ok := d.GetOk("aws.0.provider_subnet_cidr"); !ok {
 			newCluster.ProviderSubnetCidr = "10.0.0.0/24"
 		} else {
-			newCluster.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
+			newCluster.ProviderSubnetCidr = temp.(string)
 		}
-		newCluster.Region = d.Get("region").(string)
-		newCluster.Zone = d.Get("zone").(string)
-	} else if d.Get("provider_code").(string) == "do" || d.Get("provider_code").(string) == "gce" ||
-		d.Get("provider_code").(string) == "gke" || d.Get("provider_code").(string) == "oneandone" {
-		if _, ok := d.GetOk("region"); !ok {
-			return fmt.Errorf("StackPoint needs region for DigitalOcean/GCE/GKE clusters.")
-		}
-		newCluster.Region = d.Get("region").(string)
-	} else if d.Get("provider_code").(string) == "azure" {
-		// Allow user to submit values for provider_resource_group_requested, and put real value in computed provider_resource_group
-		if _, ok := d.GetOk("provider_resource_group_requested"); !ok {
+	}
+	if _, ok := d.GetOk("do"); ok {
+		newCluster.Region = d.Get("do.0.region").(string)
+		newCluster.Provider = "do"
+	}
+	if _, ok := d.GetOk("gce"); ok {
+		newCluster.Region = d.Get("gce.0.region").(string)
+		newCluster.Provider = "gce"
+	}
+	if _, ok := d.GetOk("gke"); ok {
+		newCluster.Region = d.Get("gke.0.region").(string)
+		newCluster.Provider = "gke"
+	}
+	if _, ok := d.GetOk("oneandone"); ok {
+		newCluster.Region = d.Get("oneandone.0.region").(string)
+		newCluster.Provider = "oneandone"
+	}
+	if _, ok := d.GetOk("azure"); ok {
+		newCluster.Provider = "azure"
+		if temp, ok := d.GetOk("azure.0.provider_resource_group_requested"); !ok {
 			newCluster.ProviderResourceGp = "__new__"
 		} else {
-			newCluster.ProviderResourceGp = d.Get("provider_resource_group_requested").(string)
+			newCluster.ProviderResourceGp = temp.(string)
 		}
-		if _, ok := d.GetOk("region"); !ok {
-			return fmt.Errorf("StackPoint needs region for Azure clusters.")
-		}
+		newCluster.Region = d.Get("azure.0.region").(string)
+
 		// Allow user to submit values for provider_network_id_requested, and put real value in computed provider_network_id
-		if _, ok := d.GetOk("provider_network_id_requested"); !ok {
+		if temp, ok := d.GetOk("azure.0.provider_network_id_requested"); !ok {
 			newCluster.ProviderNetworkID = "__new__"
 		} else {
-			newCluster.ProviderNetworkID = d.Get("provider_network_id_requested").(string)
+			newCluster.ProviderNetworkID = temp.(string)
 		}
-		if _, ok := d.GetOk("provider_network_cidr"); !ok {
+		if temp, ok := d.GetOk("azure.0.provider_network_cidr"); !ok {
 			newCluster.ProviderNetworkCdr = "10.0.0.0/16"
 		} else {
-			newCluster.ProviderNetworkCdr = d.Get("provider_network_cidr").(string)
+			newCluster.ProviderNetworkCdr = temp.(string)
 		}
 		// Allow user to submit values for provider_subnet_id_requested, and put real value in computed provider_subnet_id
-		if _, ok := d.GetOk("provider_subnet_id_requested"); !ok {
+		if temp, ok := d.GetOk("azure.0.provider_subnet_id_requested"); !ok {
 			newCluster.ProviderSubnetID = "__new__"
 		} else {
-			newCluster.ProviderSubnetID = d.Get("provider_subnet_id_requested").(string)
+			newCluster.ProviderSubnetID = temp.(string)
 		}
-		if _, ok := d.GetOk("provider_subnet_cidr"); !ok {
+		if temp, ok := d.GetOk("azure.0.provider_subnet_cidr"); !ok {
 			newCluster.ProviderSubnetCidr = "10.0.0.0/24"
 		} else {
-			newCluster.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
+			newCluster.ProviderSubnetCidr = temp.(string)
 		}
-		newCluster.Region = d.Get("region").(string)
-	} else if d.Get("provider_code").(string) == "packet" {
-		if _, ok := d.GetOk("region"); !ok {
-			return fmt.Errorf("StackPoint needs region for Packet clusters.")
-		}
-		if _, ok := d.GetOk("project_id"); !ok {
-			return fmt.Errorf("StackPoint needs project_id for Packet clusters.")
-		}
-		newCluster.Region = d.Get("region").(string)
-		newCluster.ProjectID = d.Get("project_id").(string)
 	}
+
+	if _, ok := d.GetOk("packet"); ok {
+		newCluster.Provider = "packet"
+
+		newCluster.Region = d.Get("packet.0.region").(string)
+		newCluster.ProjectID = d.Get("packet.0.project_id").(string)
+	}
+	// Grab provider-specific fields
+
 	// Do cluster creation call
-	cluster, err := config.Client.CreateCluster(orgID, newCluster)
+	// cluster, err := config.Client.CreateCluster(orgID, newCluster)
 
 	reqJSON, _ := json.Marshal(newCluster)
-	resJSON, _ := json.Marshal(cluster)
+	// resJSON, _ := json.Marshal(cluster)
 
 	log.Println("[DEBUG] Cluster create request", string(reqJSON))
-	log.Println("[DEBUG] Cluster create response", string(resJSON))
+	// log.Println("[DEBUG] Cluster create response", string(resJSON))
 
 	// Don't bail until request and response are logged above
-	if err != nil {
-		log.Printf("[DEBUG] Cluster error at CreateCluster: %s", err)
-		return err
-	}
+	// if err != nil {
+	// 	log.Printf("[DEBUG] Cluster error at CreateCluster: %s", err)
+	// 	return err
+	// }
 
-	// Wait until provisioned
-	timeout := int(d.Timeout("Create").Seconds())
-	if v, ok := d.GetOk("timeout"); ok {
-		timeout = v.(int)
-	}
-	if err = config.Client.WaitClusterRunning(orgID, cluster.ID, false, timeout); err != nil {
-		log.Printf("[DEBUG] Cluster error at WaitClusterProvisioned: %s", err)
-		return err
-	}
+	// // Wait until provisioned
+	// timeout := int(d.Timeout("Create").Seconds())
+	// if v, ok := d.GetOk("timeout"); ok {
+	// 	timeout = v.(int)
+	// }
+	// if err = config.Client.WaitClusterRunning(orgID, cluster.ID, false, timeout); err != nil {
+	// 	log.Printf("[DEBUG] Cluster error at WaitClusterProvisioned: %s", err)
+	// 	return err
+	// }
 	// Set ID in TF
-	d.SetId(strconv.Itoa(cluster.ID))
+	// d.SetId(strconv.Itoa(cluster.ID))
+	d.SetId("1234")
 
-	return resourceStackPointClusterRead(d, meta)
+	return nil //resourceStackPointClusterRead(d, meta)
 }
 
 func resourceStackPointClusterRead(d *schema.ResourceData, meta interface{}) error {
