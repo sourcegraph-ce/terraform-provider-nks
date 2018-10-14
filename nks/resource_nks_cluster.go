@@ -1,7 +1,6 @@
 package stackpoint
 
 import (
-	"encoding/json"
 	"log"
 	"strconv"
 	"strings"
@@ -241,8 +240,8 @@ func resourceNKSCluster() *schema.Resource {
 
 func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client for API
-	// config := meta.(*Config)
-	// orgID := d.Get("org_id").(int)
+	config := meta.(*Config)
+	orgID := d.Get("org_id").(int)
 	sshKeyID := d.Get("ssh_keyset").(int)
 
 	// Set up cluster structure based on input from user
@@ -265,22 +264,9 @@ func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if _, ok := d.GetOk("aws"); ok {
-
-		// aaws := temp.(*schema.Set)
-		// for _, v := range aaws {
-		// 	log.Println("[DEBUG] *********** AWS", v)
-
-		// }
-		// log.Println("[DEBUG] *********** AWS", aaws)
-		// for k, v := range aws {
-		// 	log.Println("[DEBUG]", k, v)
-		// }
-		// log.Println("[DEBUG] *********** AWS")
 		newCluster.Region = d.Get("aws.0.region").(string)
 
 		newCluster.Zone = d.Get("aws.0.zone").(string)
-		log.Println("[DEBUG] *********** ZONE", d.Get("aws.0.zone"))
-		log.Println("[DEBUG] *********** REGION", d.Get("aws.0.region"))
 
 		// Allow user to submit values for provider_network_id_requested, and put real value in computed provider_network_id
 		if temp, ok := d.GetOk("aws.0.provider_network_id_requested"); !ok {
@@ -361,37 +347,35 @@ func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 		newCluster.Region = d.Get("packet.0.region").(string)
 		newCluster.ProjectID = d.Get("packet.0.project_id").(string)
 	}
-	// Grab provider-specific fields
 
 	// Do cluster creation call
-	// cluster, err := config.Client.CreateCluster(orgID, newCluster)
+	cluster, err := config.Client.CreateCluster(orgID, newCluster)
 
-	reqJSON, _ := json.Marshal(newCluster)
+	// reqJSON, _ := json.Marshal(newCluster)
 	// resJSON, _ := json.Marshal(cluster)
 
-	log.Println("[DEBUG] Cluster create request", string(reqJSON))
+	// log.Println("[DEBUG] Cluster create request", string(reqJSON))
 	// log.Println("[DEBUG] Cluster create response", string(resJSON))
 
 	// Don't bail until request and response are logged above
-	// if err != nil {
-	// 	log.Printf("[DEBUG] Cluster error at CreateCluster: %s", err)
-	// 	return err
-	// }
+	if err != nil {
+		log.Printf("[DEBUG] Cluster error at CreateCluster: %s", err)
+		return err
+	}
 
-	// // Wait until provisioned
-	// timeout := int(d.Timeout("Create").Seconds())
-	// if v, ok := d.GetOk("timeout"); ok {
-	// 	timeout = v.(int)
-	// }
-	// if err = config.Client.WaitClusterRunning(orgID, cluster.ID, false, timeout); err != nil {
-	// 	log.Printf("[DEBUG] Cluster error at WaitClusterProvisioned: %s", err)
-	// 	return err
-	// }
+	// Wait until provisioned
+	timeout := int(d.Timeout("Create").Seconds())
+	if v, ok := d.GetOk("timeout"); ok {
+		timeout = v.(int)
+	}
+	if err = config.Client.WaitClusterRunning(orgID, cluster.ID, false, timeout); err != nil {
+		log.Printf("[DEBUG] Cluster error at WaitClusterProvisioned: %s", err)
+		return err
+	}
 	// Set ID in TF
-	// d.SetId(strconv.Itoa(cluster.ID))
-	d.SetId("1234")
+	d.SetId(strconv.Itoa(cluster.ID))
 
-	return nil //resourceNKSClusterRead(d, meta)
+	return resourceNKSClusterRead(d, meta)
 }
 
 func resourceNKSClusterRead(d *schema.ResourceData, meta interface{}) error {
