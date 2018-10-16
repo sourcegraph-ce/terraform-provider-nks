@@ -2,12 +2,13 @@ package stackpoint
 
 import (
 	"fmt"
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccStackPointCluster_basic(t *testing.T) {

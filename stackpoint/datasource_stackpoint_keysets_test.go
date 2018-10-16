@@ -1,14 +1,12 @@
 package stackpoint
 
 import (
-	"fmt"
-	"github.com/hashicorp/terraform/helper/resource"
-	"os"
 	"testing"
+
+	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccDataSourceKeysets_lookup(t *testing.T) {
-	orgID := os.Getenv("SPC_ORG_ID")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -17,17 +15,13 @@ func TestAccDataSourceKeysets_lookup(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccDataSourceStackPointKeysets_lookup, orgID),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.stackpoint_keysets.keyset-default", "org_id", orgID),
-				),
+				Config: testAccDataSourceStackPointKeysets_lookup,
 			},
 		},
 	})
 }
 
 const testAccDataSourceStackPointKeysets_lookup = `
-data "stackpoint_keysets" "keyset-default" {
-  org_id = "%s"
+data "stackpoint_keysets" "org" {
 }
 `
