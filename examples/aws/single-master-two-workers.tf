@@ -1,5 +1,9 @@
-provider "stackpoint" {
-  /* Set environment variable SPC_API_TOKEN with your API token from StackPointCloud    
+provider "nks" {
+ 
+ endpoint = "https://api-staging.stackpoint.io"
+  token = "5925505e8c547504b936cceff14736df37e5e2745ec8830a9c4a1aa93ae543b2"
+
+ /* Set environment variable SPC_API_TOKEN with your API token from StackPointCloud    
      Set environment variable SPC_BASE_API_URL with API endpoint,   
      defaults to StackPointCloud production enviroment */
 }
@@ -7,6 +11,7 @@ provider "stackpoint" {
 data "nks_keysets" "keyset_default" {
   /* You can specify a custom orgID here,   
      or the system will find and use your default organization ID */
+     org_id="87"
 }
 
 data "nks_instance_specs" "master-specs" {

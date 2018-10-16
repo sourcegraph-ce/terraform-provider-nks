@@ -2,6 +2,7 @@ package stackpoint
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -22,6 +23,10 @@ func resourceNKSCluster() *schema.Resource {
 				Required: true,
 			},
 			"cluster_name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"provider_code": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -69,11 +74,19 @@ func resourceNKSCluster() *schema.Resource {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
+			"region": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"zone": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"project_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"region": {
+			"provider_resource_group_requested": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -148,93 +161,6 @@ func resourceNKSCluster() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
-			"aws": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				ConflictsWith: []string{"do", "packet"},
-				MaxItems:      1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"region": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"zone": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"provider_network_id_requested": {
-							Type:     schema.TypeString,
-							Default:  "__new__",
-							Optional: true,
-						},
-						"provider_network_cidr": {
-							Type:     schema.TypeString,
-							Default:  "10.0.0.0/16",
-							Optional: true,
-						},
-						"provider_subnet_cidr": {
-							Type:     schema.TypeString,
-							Default:  "10.0.0.0/16",
-							Optional: true,
-						},
-						"provider_subnet_id_requested": {
-							Type:     schema.TypeString,
-							Default:  "__new__",
-							Optional: true,
-						},
-
-						"provider_resource_group": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"provider_network_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"provider_subnet_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"provider_resource_group_requested": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
-				},
-			},
-			"do": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				ConflictsWith: []string{"aws", "packet"},
-				MaxItems:      1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"region": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-					},
-				},
-			},
-			"packet": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				ConflictsWith: []string{"aws", "do"},
-				MaxItems:      1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"region": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"project_id": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -247,8 +173,8 @@ func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 
 	// Set up cluster structure based on input from user
 	newCluster := stackpointio.Cluster{
-		Name: d.Get("cluster_name").(string),
-		// Provider:          d.Get("provider_code").(string),
+		Name:              d.Get("cluster_name").(string),
+		Provider:          d.Get("provider_code").(string),
 		ProviderKey:       d.Get("provider_keyset").(int),
 		MasterCount:       1,
 		MasterSize:        d.Get("startup_master_size").(string),
@@ -263,101 +189,99 @@ func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 		SSHKeySet:         sshKeyID,
 		Solutions:         []stackpointio.Solution{}, // helm_tiller will get automatically installed
 	}
-
-	if _, ok := d.GetOk("aws"); ok {
-		newCluster.Region = d.Get("aws.0.region").(string)
-
-		newCluster.Zone = d.Get("aws.0.zone").(string)
-
+	// Grab provider-specific fields
+	if d.Get("provider_code").(string) == "aws" {
+		if _, ok := d.GetOk("region"); !ok {
+			return fmt.Errorf("StackPoint needs region for AWS clusters.")
+		}
+		if _, ok := d.GetOk("zone"); !ok {
+			return fmt.Errorf("StackPoint needs zone for AWS clusters.")
+		}
 		// Allow user to submit values for provider_network_id_requested, and put real value in computed provider_network_id
-		if temp, ok := d.GetOk("aws.0.provider_network_id_requested"); !ok {
+		if _, ok := d.GetOk("provider_network_id_requested"); !ok {
 			newCluster.ProviderNetworkID = "__new__"
 		} else {
-			newCluster.ProviderNetworkID = temp.(string)
+			newCluster.ProviderNetworkID = d.Get("provider_network_id_requested").(string)
 		}
-		if temp, ok := d.GetOk("aws.0.provider_network_cidr"); !ok {
+		if _, ok := d.GetOk("provider_network_cidr"); !ok {
 			newCluster.ProviderNetworkCdr = "10.0.0.0/16"
 		} else {
-			newCluster.ProviderNetworkCdr = temp.(string)
+			newCluster.ProviderNetworkCdr = d.Get("provider_network_cidr").(string)
 		}
-
 		// Allow user to submit values for provider_subnet_id_requested, and put real value in computed provider_subnet_id
-		if temp, ok := d.GetOk("aws.0.provider_subnet_id_requested"); !ok {
+		if _, ok := d.GetOk("provider_subnet_id_requested"); !ok {
 			newCluster.ProviderSubnetID = "__new__"
 		} else {
-			newCluster.ProviderSubnetID = temp.(string)
+			newCluster.ProviderSubnetID = d.Get("provider_subnet_id_requested").(string)
 		}
-		if temp, ok := d.GetOk("aws.0.provider_subnet_cidr"); !ok {
+		if _, ok := d.GetOk("provider_subnet_cidr"); !ok {
 			newCluster.ProviderSubnetCidr = "10.0.0.0/24"
 		} else {
-			newCluster.ProviderSubnetCidr = temp.(string)
+			newCluster.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
 		}
-	}
-	if _, ok := d.GetOk("do"); ok {
-		newCluster.Region = d.Get("do.0.region").(string)
-		newCluster.Provider = "do"
-	}
-	if _, ok := d.GetOk("gce"); ok {
-		newCluster.Region = d.Get("gce.0.region").(string)
-		newCluster.Provider = "gce"
-	}
-	if _, ok := d.GetOk("gke"); ok {
-		newCluster.Region = d.Get("gke.0.region").(string)
-		newCluster.Provider = "gke"
-	}
-	if _, ok := d.GetOk("oneandone"); ok {
-		newCluster.Region = d.Get("oneandone.0.region").(string)
-		newCluster.Provider = "oneandone"
-	}
-	if _, ok := d.GetOk("azure"); ok {
-		newCluster.Provider = "azure"
-		if temp, ok := d.GetOk("azure.0.provider_resource_group_requested"); !ok {
+		newCluster.Region = d.Get("region").(string)
+		newCluster.Zone = d.Get("zone").(string)
+	} else if d.Get("provider_code").(string) == "do" || d.Get("provider_code").(string) == "gce" ||
+		d.Get("provider_code").(string) == "gke" || d.Get("provider_code").(string) == "oneandone" {
+		if _, ok := d.GetOk("region"); !ok {
+			return fmt.Errorf("StackPoint needs region for DigitalOcean/GCE/GKE clusters.")
+		}
+		newCluster.Region = d.Get("region").(string)
+	} else if d.Get("provider_code").(string) == "azure" {
+		// Allow user to submit values for provider_resource_group_requested, and put real value in computed provider_resource_group
+		if _, ok := d.GetOk("provider_resource_group_requested"); !ok {
 			newCluster.ProviderResourceGp = "__new__"
 		} else {
-			newCluster.ProviderResourceGp = temp.(string)
+			newCluster.ProviderResourceGp = d.Get("provider_resource_group_requested").(string)
 		}
-		newCluster.Region = d.Get("azure.0.region").(string)
-
+		if _, ok := d.GetOk("region"); !ok {
+			return fmt.Errorf("StackPoint needs region for Azure clusters.")
+		}
 		// Allow user to submit values for provider_network_id_requested, and put real value in computed provider_network_id
-		if temp, ok := d.GetOk("azure.0.provider_network_id_requested"); !ok {
+		if _, ok := d.GetOk("provider_network_id_requested"); !ok {
 			newCluster.ProviderNetworkID = "__new__"
 		} else {
-			newCluster.ProviderNetworkID = temp.(string)
+			newCluster.ProviderNetworkID = d.Get("provider_network_id_requested").(string)
 		}
-		if temp, ok := d.GetOk("azure.0.provider_network_cidr"); !ok {
+		if _, ok := d.GetOk("provider_network_cidr"); !ok {
 			newCluster.ProviderNetworkCdr = "10.0.0.0/16"
 		} else {
-			newCluster.ProviderNetworkCdr = temp.(string)
+			newCluster.ProviderNetworkCdr = d.Get("provider_network_cidr").(string)
 		}
 		// Allow user to submit values for provider_subnet_id_requested, and put real value in computed provider_subnet_id
-		if temp, ok := d.GetOk("azure.0.provider_subnet_id_requested"); !ok {
+		if _, ok := d.GetOk("provider_subnet_id_requested"); !ok {
 			newCluster.ProviderSubnetID = "__new__"
 		} else {
-			newCluster.ProviderSubnetID = temp.(string)
+			newCluster.ProviderSubnetID = d.Get("provider_subnet_id_requested").(string)
 		}
-		if temp, ok := d.GetOk("azure.0.provider_subnet_cidr"); !ok {
+		if _, ok := d.GetOk("provider_subnet_cidr"); !ok {
 			newCluster.ProviderSubnetCidr = "10.0.0.0/24"
 		} else {
-			newCluster.ProviderSubnetCidr = temp.(string)
+			newCluster.ProviderSubnetCidr = d.Get("provider_subnet_cidr").(string)
 		}
+		newCluster.Region = d.Get("region").(string)
+	} else if d.Get("provider_code").(string) == "packet" {
+		if _, ok := d.GetOk("region"); !ok {
+			return fmt.Errorf("StackPoint needs region for Packet clusters.")
+		}
+		if _, ok := d.GetOk("project_id"); !ok {
+			return fmt.Errorf("StackPoint needs project_id for Packet clusters.")
+		}
+		newCluster.Region = d.Get("region").(string)
+		newCluster.ProjectID = d.Get("project_id").(string)
 	}
-
-	if _, ok := d.GetOk("packet"); ok {
-		newCluster.Provider = "packet"
-
-		newCluster.Region = d.Get("packet.0.region").(string)
-		newCluster.ProjectID = d.Get("packet.0.project_id").(string)
-	}
-
 	// Do cluster creation call
 	cluster, err := config.Client.CreateCluster(orgID, newCluster)
 
+	reqJSON, _ := json.Marshal(newCluster)
+	resJSON, _ := json.Marshal(cluster)
+
+	log.Println("[DEBUG] Cluster create request", string(reqJSON))
+	log.Println("[DEBUG] Cluster create response", string(resJSON))
+
 	// Don't bail until request and response are logged above
 	if err != nil {
-		reqJSON, _ := json.Marshal(newCluster)
-		log.Printf("[DEBUG] Cluster error at CreateCluster: Error: %s", err)
-		log.Printf("[DEBUG] Request: %s", string(reqJSON))
-
+		log.Printf("[DEBUG] Cluster error at CreateCluster: %s", err)
 		return err
 	}
 
@@ -373,7 +297,7 @@ func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	// Set ID in TF
 	d.SetId(strconv.Itoa(cluster.ID))
 
-	return nil //resourceNKSClusterRead(d, meta)
+	return resourceNKSClusterRead(d, meta)
 }
 
 func resourceNKSClusterRead(d *schema.ResourceData, meta interface{}) error {
