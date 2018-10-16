@@ -1,4 +1,4 @@
-package stackpoint
+package nks
 
 import (
 	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"

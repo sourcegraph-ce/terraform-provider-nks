@@ -11,52 +11,51 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccStackPointCluster_basic(t *testing.T) {
-	var cluster stackpointio.Cluster
+func TestAccStackPointSolution_basic(t *testing.T) {
+	_, exists := os.LookupEnv("TF_ACC_SOLUTION_LOCK")
+	if !exists {
+		t.Skip("`TF_ACC_SOLUTION_LOCK` isn't specified - skipping since test will increase test time significantly")
+	}
+
+	var solution stackpointio.Solution
 	nodeSize := "standard_f1"
 	clusterName := "TerraForm AccTest"
 	region := "eastus"
-	vpcCIDR := "10.0.0.0/16"
-	subnetCIDR := "10.0.0.0/24"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
 		},
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDNKSClusterDestroyCheck,
+		CheckDestroy: testAccCheckDStackPointSolutionDestroyCheck,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccNKSCluster_basic, nodeSize, clusterName, region),
+				Config: fmt.Sprintf(testAccStackPointSolution_basic, nodeSize, clusterName, region),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.nks_instance_specs.master-specs", "node_size", nodeSize),
-					resource.TestCheckResourceAttr("data.nks_instance_specs.worker-specs", "node_size", nodeSize),
-					resource.TestCheckResourceAttr("nks_cluster.terraform-cluster", "cluster_name", clusterName),
-					resource.TestCheckResourceAttr("nks_cluster.terraform-cluster", "region", region),
-					resource.TestCheckResourceAttr("nks_cluster.terraform-cluster", "provider_network_cidr", vpcCIDR),
-					resource.TestCheckResourceAttr("nks_cluster.terraform-cluster", "provider_subnet_cidr", subnetCIDR),
-					testAccCheckNKSClusterExists("nks_cluster.terraform-cluster", &cluster),
+					resource.TestCheckResourceAttr("nks_solution.efk", "solution", "efk"),
+					testAccCheckStackPointSolutionExists("nks_solution.efk", &solution),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckDNKSClusterDestroyCheck(s *terraform.State) error {
+func testAccCheckDStackPointSolutionDestroyCheck(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "nks_cluster" {
+		if rs.Type != "nks_solution" {
 			continue
 		}
 		client := stackpointio.NewClient(os.Getenv("SPC_API_TOKEN"), os.Getenv("SPC_BASE_API_URL"))
 		orgID, err := strconv.Atoi(rs.Primary.Attributes["org_id"])
+		clID, err := strconv.Atoi(rs.Primary.Attributes["cluster_id"])
 		if err != nil {
 			return err
 		}
-		clID, err := strconv.Atoi(rs.Primary.ID)
+		slID, err := strconv.Atoi(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
-		err = client.WaitClusterDeleted(orgID, clID, 3600)
+		err = client.WaitSolutionDeleted(orgID, clID, slID, 3600)
 		if err != nil {
 			return fmt.Errorf("Error while waiting for cluster at ID %s to delete: %s", rs.Primary.ID, err)
 		}
@@ -64,7 +63,7 @@ func testAccCheckDNKSClusterDestroyCheck(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckNKSClusterExists(n string, cl *stackpointio.Cluster) resource.TestCheckFunc {
+func testAccCheckStackPointSolutionExists(n string, sl *stackpointio.Solution) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -80,23 +79,27 @@ func testAccCheckNKSClusterExists(n string, cl *stackpointio.Cluster) resource.T
 		if err != nil {
 			return err
 		}
-		clID, err := strconv.Atoi(rs.Primary.ID)
+		clID, err := strconv.Atoi(rs.Primary.Attributes["cluster_id"])
+		if err != nil {
+			return err
+		}
+		slID, err := strconv.Atoi(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 		client := stackpointio.NewClient(os.Getenv("SPC_BASE_API_URL"), os.Getenv("SPC_BASE_API_URL"))
-		cluster, err := client.GetCluster(orgID, clID)
+		solution, err := client.GetSolution(orgID, clID, slID)
 		if err != nil {
-			return fmt.Errorf("Error occured while fetching cluster with ID %s: %s\ntoken: %s\nendpoint: %s\n",
+			return fmt.Errorf("error occured while fetching cluster with ID %s: %s\ntoken: %s\nendpoint: %s\n",
 				rs.Primary.ID, err, os.Getenv("token"), os.Getenv("endpoint"))
 		}
-		cl = cluster
+		sl = solution
 
 		return nil
 	}
 }
 
-const testAccNKSCluster_basic = `
+const testAccStackPointSolution_basic = `
 data "nks_keysets" "keyset_default" {
 
 }
@@ -127,5 +130,11 @@ resource "nks_cluster" "terraform-cluster" {
   channel                 = "stable"
   timeout                 = 1800
   ssh_keyset              = "${data.nks_keysets.keyset_default.user_ssh_keyset}"
+}
+
+resource "nks_solution" "efk"{
+	org_id     = "${data.nks_keysets.keyset_default.org_id}"
+	cluster_id = "${nks_cluster.terraform-cluster.id}"
+	solution   = "efk"
 }
 `

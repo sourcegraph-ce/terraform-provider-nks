@@ -1,15 +1,12 @@
-package stackpoint
+package nks
 
 import (
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccDataSourceKeysets_lookup(t *testing.T) {
-	orgID := os.Getenv("SPC_ORG_ID")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -18,10 +15,7 @@ func TestAccDataSourceKeysets_lookup(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccDataSourceNKSKeysets_lookup, orgID),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.nks_keysets.keyset-default", "org_id", orgID),
-				),
+				Config: testAccDataSourceNKSKeysets_lookup,
 			},
 		},
 	})
@@ -29,6 +23,7 @@ func TestAccDataSourceKeysets_lookup(t *testing.T) {
 
 const testAccDataSourceNKSKeysets_lookup = `
 data "nks_keysets" "keyset-default" {
-  org_id = "%s"
+	category = "provider"
+	entity = "azure"
 }
 `
