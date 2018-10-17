@@ -19,20 +19,20 @@ func TestAccStackPointSolution_basic(t *testing.T) {
 
 	var solution stackpointio.Solution
 	nodeSize := "standard_f1"
-	clusterName := "TerraForm AccTest"
+	clusterName := "TerraForm AccTest Solution"
 	region := "eastus"
-
+	solutionName := "haproxy"
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
 		},
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDStackPointSolutionDestroyCheck,
+		Providers: testAccProviders,
+		// CheckDestroy: testAccCheckDStackPointSolutionDestroyCheck,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccStackPointSolution_basic, nodeSize, clusterName, region),
+				Config: fmt.Sprintf(testAccStackPointSolution_basic, nodeSize, clusterName, region, solutionName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("nks_solution.efk", "solution", "efk"),
+					resource.TestCheckResourceAttr("nks_solution.efk", "solution", solutionName),
 					testAccCheckStackPointSolutionExists("nks_solution.efk", &solution),
 				),
 			},
@@ -100,8 +100,17 @@ func testAccCheckStackPointSolutionExists(n string, sl *stackpointio.Solution) r
 }
 
 const testAccStackPointSolution_basic = `
-data "nks_keysets" "keyset_default" {
+data "nks_organization" "org"{
 
+}
+data "nks_keyset" "keyset_default" {
+	category = "provider"
+	entity = "azure"
+}
+
+data "nks_keyset" "ssh" {
+	category = "user"
+	name = "default"
 }
 data "nks_instance_specs" "master-specs" {
   provider_code = "azure"
@@ -112,10 +121,10 @@ data "nks_instance_specs" "worker-specs" {
   node_size     = "${data.nks_instance_specs.master-specs.node_size}"
 }
 resource "nks_cluster" "terraform-cluster" {
-  org_id                  = "${data.nks_keysets.keyset_default.org_id}"
+  org_id                  = "${data.nks_organization.org.id}"
   cluster_name            = "%s"
   provider_code           = "azure"
-  provider_keyset         = "${data.nks_keysets.keyset_default.azure_keyset}"
+  provider_keyset         = "${data.nks_keyset.keyset_default.id}"
   region                  = "%s"
   k8s_version             = "v1.9.6"
   startup_master_size     = "${data.nks_instance_specs.master-specs.node_size}"
@@ -129,12 +138,13 @@ resource "nks_cluster" "terraform-cluster" {
   platform                = "coreos"
   channel                 = "stable"
   timeout                 = 1800
-  ssh_keyset              = "${data.nks_keysets.keyset_default.user_ssh_keyset}"
+  ssh_keyset              = "${data.nks_keyset.ssh.id}"
 }
 
 resource "nks_solution" "efk"{
-	org_id     = "${data.nks_keysets.keyset_default.org_id}"
+	org_id     = "${data.nks_organization.org.id}"
 	cluster_id = "${nks_cluster.terraform-cluster.id}"
-	solution   = "efk"
+	solution   = "%s"
+
 }
 `
