@@ -45,6 +45,10 @@ func dataSourceNKSKeysetsRead(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	var name string
 	var entity string
+	var orgID int
+	if temp, ok := d.GetOk("org_id"); ok {
+		orgID = temp.(int)
+	}
 	category := d.Get("category").(string)
 	if category == "provider" {
 		if temp, ok := d.GetOk("entity"); ok {
@@ -60,6 +64,16 @@ func dataSourceNKSKeysetsRead(d *schema.ResourceData, meta interface{}) error {
 
 	// Fetch userprofile based on API token
 	userProfile, err := config.Client.GetUserProfile()
+	if orgID == 0 {
+		for _, org := range userProfile[0].OrgMems {
+			if org.IsDefault {
+				orgID = org.Org.ID
+				break
+			}
+		}
+	}
+
+	keysets, err := config.Client.GetKeysets(orgID)
 	if err != nil {
 		return err
 	}
@@ -67,7 +81,7 @@ func dataSourceNKSKeysetsRead(d *schema.ResourceData, meta interface{}) error {
 	var userKeys []stackpointio.Keyset
 	var providerKeys []stackpointio.Keyset
 
-	for _, c := range userProfile[0].Keysets {
+	for _, c := range keysets {
 		if category == "provider" {
 			providerKeys = append(providerKeys, c)
 		} else if category == "user" {
@@ -84,9 +98,7 @@ func dataSourceNKSKeysetsRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		if name != "" {
 			var newKeys []stackpointio.Keyset
-
 			for _, p := range subKeys {
-
 				if strings.Contains(strings.ToLower(p.Name), strings.ToLower(name)) {
 					newKeys = append(newKeys, p)
 				}

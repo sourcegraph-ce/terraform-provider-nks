@@ -1118,5 +1118,5 @@
 			"revisionTime": "2018-05-03T10:44:00Z"
 		}
 	],
-	"rootPath": "github.com/StackPointCloud/terraform-provider-stackpoint"
+	"rootPath": "github.com/StackPointCloud/terraform-provider-nks"
 }
