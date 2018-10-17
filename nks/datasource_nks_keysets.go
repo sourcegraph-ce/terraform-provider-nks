@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func dataSourceNKSKeysets() *schema.Resource {
+func dataSourceNKSKeyset() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceNKSKeysetsRead,
 		Schema: map[string]*schema.Schema{

@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccDataSourceKeysets_lookup(t *testing.T) {
+func TestAccDataSourceOrganization_lookup(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -15,15 +15,13 @@ func TestAccDataSourceKeysets_lookup(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNKSKeysets_lookup,
+				Config: testAccDataSourceNKSOrganization_lookup,
 			},
 		},
 	})
 }
 
-const testAccDataSourceNKSKeysets_lookup = `
-data "nks_keyset" "keyset-default" {
-	category = "provider"
-	entity = "azure"
+const testAccDataSourceNKSOrganization_lookup = `
+data "nks_organization" "default" {
 }
 `

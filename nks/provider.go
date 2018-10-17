@@ -34,7 +34,8 @@ func Provider() terraform.ResourceProvider {
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"nks_instance_specs": dataSourceNKSInstanceSpecs(),
-			"nks_keysets":        dataSourceNKSKeysets(),
+			"nks_keyset":         dataSourceNKSKeyset(),
+			"nks_organization":   dataSourceNKSOrganization(),
 		},
 		ConfigureFunc: providerConfigure,
 	}
