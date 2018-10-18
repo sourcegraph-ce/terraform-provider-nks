@@ -3,10 +3,10 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "1l/0boY94Z9mDjIbrRUA0fweOQA=",
+			"checksumSHA1": "2GzxqY3ukimErHHwXamtbkji0/o=",
 			"path": "github.com/StackPointCloud/stackpoint-sdk-go/stackpointio",
-			"revision": "8a82b0ca1c58b68aaf00426639d3844cdbad2bc4",
-			"revisionTime": "2018-07-11T20:02:58Z"
+			"revision": "be52e1cd58b80bb3889e8c4e73d56316749043d0",
+			"revisionTime": "2018-10-17T22:45:40Z"
 		},
 		{
 			"checksumSHA1": "jQh1fnoKPKMURvKkpdRjN695nAQ=",
