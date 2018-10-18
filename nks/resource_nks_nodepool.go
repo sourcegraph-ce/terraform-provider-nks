@@ -1,20 +1,21 @@
-package stackpoint
+package nks
 
 import (
 	"fmt"
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
-	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func resourceStackPointNodePool() *schema.Resource {
+func resourceNKSNodePool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceStackPointNodePoolCreate,
-		Read:   resourceStackPointNodePoolRead,
-		Update: resourceStackPointNodePoolUpdate,
-		Delete: resourceStackPointNodePoolDelete,
+		Create: resourceNKSNodePoolCreate,
+		Read:   resourceNKSNodePoolRead,
+		Update: resourceNKSNodePoolUpdate,
+		Delete: resourceNKSNodePoolDelete,
 		Schema: map[string]*schema.Schema{
 			"org_id": {
 				Type:     schema.TypeInt,
@@ -94,7 +95,7 @@ func resourceStackPointNodePool() *schema.Resource {
 	}
 }
 
-func resourceStackPointNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client for API
 	config := meta.(*Config)
 	clusterID := d.Get("cluster_id").(int)
@@ -108,7 +109,7 @@ func resourceStackPointNodePoolCreate(d *schema.ResourceData, meta interface{}) 
 	}
 	if d.Get("provider_code").(string) == "aws" {
 		if _, ok := d.GetOk("zone"); !ok {
-			return fmt.Errorf("StackPoint needs zone for AWS clusters.")
+			return fmt.Errorf("NKS needs zone for AWS clusters.")
 		}
 		newNodepool.Zone = d.Get("zone").(string)
 	}
@@ -157,10 +158,10 @@ func resourceStackPointNodePoolCreate(d *schema.ResourceData, meta interface{}) 
 	// Set ID in TF
 	d.SetId(strconv.Itoa(pool.ID))
 
-	return resourceStackPointNodePoolRead(d, meta)
+	return resourceNKSNodePoolRead(d, meta)
 }
 
-func resourceStackPointNodePoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSNodePoolRead(d *schema.ResourceData, meta interface{}) error {
 	nodepoolID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return err
@@ -195,7 +196,7 @@ func resourceStackPointNodePoolRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceStackPointNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	nodepoolID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return err
@@ -256,10 +257,10 @@ func resourceStackPointNodePoolUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 	}
-	return resourceStackPointNodePoolRead(d, meta)
+	return resourceNKSNodePoolRead(d, meta)
 }
 
-func resourceStackPointNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
 	nodepoolID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return err

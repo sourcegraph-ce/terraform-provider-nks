@@ -1,4 +1,4 @@
-package stackpoint
+package nks
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccDataSourceKeysets_lookup(t *testing.T) {
+func TestAccDataSourceOrganization_lookup(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -15,13 +15,13 @@ func TestAccDataSourceKeysets_lookup(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceStackPointKeysets_lookup,
+				Config: testAccDataSourceNKSOrganization_lookup,
 			},
 		},
 	})
 }
 
-const testAccDataSourceStackPointKeysets_lookup = `
-data "stackpoint_keysets" "org" {
+const testAccDataSourceNKSOrganization_lookup = `
+data "nks_organization" "default" {
 }
 `

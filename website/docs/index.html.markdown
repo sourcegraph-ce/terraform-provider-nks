@@ -35,7 +35,7 @@ provider "stackpoint" {
   endpoint = "stackpointcloud_api_url"
 }
 
-data "stackpoint_keysets" "keyset_default" {
+data "nks_keysets" "keyset_default" {
   /* You can specify a custom orgID here,   
      or the system will find and use your default organization ID */
 }
@@ -68,7 +68,7 @@ The default `timeouts` values are:
 An example of overwriting the default timeout (setting timeout to 6 minutes instead of the default 30 minutes):
 
 ```hcl
-resource "stackpoint_master_node" "master2" {
+resource "nks_master_node" "master2" {
   org_id        = "111"
   cluster_id    = "4066"
   provider_code = "azure"

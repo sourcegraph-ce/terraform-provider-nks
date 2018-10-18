@@ -1,6 +1,6 @@
 ---
 layout: "stackpoint"
-page_title: "StackPoint : stackpoint_keysets"
+page_title: "StackPoint : nks_keysets"
 sidebar_current: "docs-stackpoint-keysets"
 description: |-
   Get information on StackPoint keysets
@@ -13,7 +13,7 @@ The keysets data source can be used to automatically look up your configured clo
 ## Example Usage
 
 ```hcl
-data "stackpoint_keysets" "keyset_default" {
+data "nks_keysets" "keyset_default" {
   org_id  = 111
 }
 ```

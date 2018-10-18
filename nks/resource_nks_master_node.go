@@ -1,20 +1,21 @@
-package stackpoint
+package nks
 
 import (
 	"fmt"
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
-	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func resourceStackPointMasterNode() *schema.Resource {
+func resourceNKSMasterNode() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceStackPointMasterNodeCreate,
-		Read:   resourceStackPointMasterNodeRead,
-		Update: resourceStackPointMasterNodeUpdate,
-		Delete: resourceStackPointMasterNodeDelete,
+		Create: resourceNKSMasterNodeCreate,
+		Read:   resourceNKSMasterNodeRead,
+		Update: resourceNKSMasterNodeUpdate,
+		Delete: resourceNKSMasterNodeDelete,
 		Schema: map[string]*schema.Schema{
 			"org_id": {
 				Type:     schema.TypeInt,
@@ -83,7 +84,7 @@ func resourceStackPointMasterNode() *schema.Resource {
 	}
 }
 
-func resourceStackPointMasterNodeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSMasterNodeCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client for API
 	config := meta.(*Config)
 	clusterID := d.Get("cluster_id").(int)
@@ -97,7 +98,7 @@ func resourceStackPointMasterNodeCreate(d *schema.ResourceData, meta interface{}
 	}
 	if d.Get("provider_code").(string) == "aws" {
 		if _, ok := d.GetOk("zone"); !ok {
-			return fmt.Errorf("StackPoint needs zone for AWS clusters.")
+			return fmt.Errorf("NKS needs zone for AWS clusters.")
 		}
 		newNode.Zone = d.Get("zone").(string)
 	}
@@ -132,10 +133,10 @@ func resourceStackPointMasterNodeCreate(d *schema.ResourceData, meta interface{}
 	// Set ID in TF
 	d.SetId(strconv.Itoa(nodes[0].ID))
 
-	return resourceStackPointMasterNodeRead(d, meta)
+	return resourceNKSMasterNodeRead(d, meta)
 }
 
-func resourceStackPointMasterNodeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSMasterNodeRead(d *schema.ResourceData, meta interface{}) error {
 	nodeID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return err
@@ -168,12 +169,12 @@ func resourceStackPointMasterNodeRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceStackPointMasterNodeUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSMasterNodeUpdate(d *schema.ResourceData, meta interface{}) error {
 	// No updates possible, everything requires rebuild and is set ForceNew
-	return resourceStackPointMasterNodeRead(d, meta)
+	return resourceNKSMasterNodeRead(d, meta)
 }
 
-func resourceStackPointMasterNodeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSMasterNodeDelete(d *schema.ResourceData, meta interface{}) error {
 	nodeID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return err

@@ -1,20 +1,21 @@
-package stackpoint
+package nks
 
 import (
 	"fmt"
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
-	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func resourceStackPointSolution() *schema.Resource {
+func resourceNKSSolution() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceStackPointSolutionCreate,
-		Read:   resourceStackPointSolutionRead,
-		Update: resourceStackPointSolutionUpdate,
-		Delete: resourceStackPointSolutionDelete,
+		Create: resourceNKSSolutionCreate,
+		Read:   resourceNKSSolutionRead,
+		Update: resourceNKSSolutionUpdate,
+		Delete: resourceNKSSolutionDelete,
 		Schema: map[string]*schema.Schema{
 			"org_id": {
 				Type:     schema.TypeInt,
@@ -52,7 +53,7 @@ func resourceStackPointSolution() *schema.Resource {
 	}
 }
 
-func resourceStackPointSolutionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSSolutionCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client for API
 	config := meta.(*Config)
 	clusterID := d.Get("cluster_id").(int)
@@ -98,10 +99,10 @@ func resourceStackPointSolutionCreate(d *schema.ResourceData, meta interface{}) 
 	// Set ID in TF
 	d.SetId(strconv.Itoa(solution.ID))
 
-	return resourceStackPointSolutionRead(d, meta)
+	return resourceNKSSolutionRead(d, meta)
 }
 
-func resourceStackPointSolutionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSSolutionRead(d *schema.ResourceData, meta interface{}) error {
 	solutionID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return err
@@ -127,12 +128,12 @@ func resourceStackPointSolutionRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceStackPointSolutionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSSolutionUpdate(d *schema.ResourceData, meta interface{}) error {
 	// No updates possible
-	return resourceStackPointSolutionRead(d, meta)
+	return resourceNKSSolutionRead(d, meta)
 }
 
-func resourceStackPointSolutionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSSolutionDelete(d *schema.ResourceData, meta interface{}) error {
 	solutionID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return err

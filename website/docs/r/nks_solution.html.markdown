@@ -1,6 +1,6 @@
 ---
 layout: "stackpoint"
-page_title: "StackPoint: stackpoint_solution"
+page_title: "StackPoint: nks_solution"
 sidebar_current: "docs-stackpoint-resource-solution"
 description: |-
   Installs and manages a solution in a cluster
@@ -13,9 +13,9 @@ Installs and manages a solution in a cluster in StackPointCloud's system
 ## Example Usage
 
 ```hcl
-resource "stackpoint_solution" "jenkins" {
-  org_id               = "${data.stackpoint_keysets.keyset_default.org_id}"
-  cluster_id           = "${stackpoint_cluster.terraform-cluster.id}"
+resource "nks_solution" "jenkins" {
+  org_id               = "${data.nks_keysets.keyset_default.org_id}"
+  cluster_id           = "${nks_cluster.terraform-cluster.id}"
   solution             = "jenkins"
   config               = "${file("solutions/jenkins.json")}"
 }

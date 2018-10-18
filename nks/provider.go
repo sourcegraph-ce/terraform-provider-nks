@@ -1,11 +1,11 @@
-package stackpoint
+package nks
 
 import (
-	"fmt"
+	"time"
+
 	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"time"
 )
 
 // Provider returns a schema.Provider for StackPoint
@@ -27,26 +27,21 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"stackpoint_cluster":     resourceStackPointCluster(),
-			"stackpoint_master_node": resourceStackPointMasterNode(),
-			"stackpoint_nodepool":    resourceStackPointNodePool(),
-			"stackpoint_solution":    resourceStackPointSolution(),
+			"nks_cluster":     resourceNKSCluster(),
+			"nks_master_node": resourceNKSMasterNode(),
+			"nks_nodepool":    resourceNKSNodePool(),
+			"nks_solution":    resourceNKSSolution(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"stackpoint_instance_specs": dataSourceStackPointInstanceSpecs(),
-			"stackpoint_keysets":        dataSourceStackPointKeysets(),
+			"nks_instance_specs": dataSourceNKSInstanceSpecs(),
+			"nks_keyset":         dataSourceNKSKeyset(),
+			"nks_organization":   dataSourceNKSOrganization(),
 		},
 		ConfigureFunc: providerConfigure,
 	}
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
-	if _, ok := d.GetOk("token"); !ok {
-		return nil, fmt.Errorf("StackPoint token has not been provided.")
-	}
-	if _, ok := d.GetOk("endpoint"); !ok {
-		return nil, fmt.Errorf("StackPoint endpoint has not been provided.")
-	}
 	config := Config{
 		Token:    d.Get("token").(string),
 		EndPoint: d.Get("endpoint").(string),

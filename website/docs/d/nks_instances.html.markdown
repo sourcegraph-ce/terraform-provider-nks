@@ -1,6 +1,6 @@
 ---
 layout: "stackpoint"
-page_title: "StackPoint : stackpoint_instances"
+page_title: "StackPoint : nks_instances"
 sidebar_current: "docs-stackpoint-datasource-instances"
 description: |-
   Get information on a StackPoint Instances
@@ -13,7 +13,7 @@ The instance specs data source can be used to select and validate a node size. Y
 ## Example Usage
 
 ```hcl
-data "stackpoint_instance_specs" "master-specs" {
+data "nks_instance_specs" "master-specs" {
   provider_code = "azure"
   node_size     = "standard_f1"
 }

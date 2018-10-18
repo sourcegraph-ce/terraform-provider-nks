@@ -1,21 +1,22 @@
-package stackpoint
+package nks
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
-	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func resourceStackPointCluster() *schema.Resource {
+func resourceNKSCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceStackPointClusterCreate,
-		Read:   resourceStackPointClusterRead,
-		Update: resourceStackPointClusterUpdate,
-		Delete: resourceStackPointClusterDelete,
+		Create: resourceNKSClusterCreate,
+		Read:   resourceNKSClusterRead,
+		Update: resourceNKSClusterUpdate,
+		Delete: resourceNKSClusterDelete,
 		Schema: map[string]*schema.Schema{
 			"org_id": {
 				Type:     schema.TypeInt,
@@ -164,7 +165,7 @@ func resourceStackPointCluster() *schema.Resource {
 	}
 }
 
-func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client for API
 	config := meta.(*Config)
 	orgID := d.Get("org_id").(int)
@@ -296,10 +297,10 @@ func resourceStackPointClusterCreate(d *schema.ResourceData, meta interface{}) e
 	// Set ID in TF
 	d.SetId(strconv.Itoa(cluster.ID))
 
-	return resourceStackPointClusterRead(d, meta)
+	return resourceNKSClusterRead(d, meta)
 }
 
-func resourceStackPointClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clusterID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return err
@@ -348,7 +349,7 @@ func resourceStackPointClusterRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceStackPointClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	clusterID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return err
@@ -380,10 +381,10 @@ func resourceStackPointClusterUpdate(d *schema.ResourceData, meta interface{}) e
 		log.Println("[DEBUG] Cluster successfully upgraded k8s_version")
 	}
 
-	return resourceStackPointClusterRead(d, meta)
+	return resourceNKSClusterRead(d, meta)
 }
 
-func resourceStackPointClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNKSClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	clusterID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return err

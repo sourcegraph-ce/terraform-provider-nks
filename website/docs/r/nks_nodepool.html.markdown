@@ -1,6 +1,6 @@
 ---
 layout: "stackpoint"
-page_title: "StackPoint: stackpoint_nodepool"
+page_title: "StackPoint: nks_nodepool"
 sidebar_current: "docs-stackpoint-resource-nodepool"
 description: |-
   Creates and manages an additional nodepool of worker nodes.
@@ -13,15 +13,15 @@ Creates and manages an additional nodepool of worker nodes in StackPointCloud's 
 ## Example Usage
 
 ```hcl
-resource "stackpoint_nodepool" "nodepool2" {
-  org_id               = "${data.stackpoint_keysets.keyset_default.org_id}"
-  cluster_id           = "${stackpoint_cluster.terraform-cluster.id}"
+resource "nks_nodepool" "nodepool2" {
+  org_id               = "${data.nks_keysets.keyset_default.org_id}"
+  cluster_id           = "${nks_cluster.terraform-cluster.id}"
   provider_code        = "aws"
   platform             = "coreos"
   zone                 = "us-east-2b"
   provider_subnet_cidr = "10.2.0.0/24"
   worker_count         = 1
-  worker_size          = "${data.stackpoint_instance_specs.worker-specs.node_size}"
+  worker_size          = "${data.nks_instance_specs.worker-specs.node_size}"
 }
 ```
 

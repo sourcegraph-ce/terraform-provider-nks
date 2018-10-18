@@ -1,6 +1,6 @@
 ---
 layout: "stackpoint"
-page_title: "StackPoint: stackpoint_cluster"
+page_title: "StackPoint: nks_cluster"
 sidebar_current: "docs-stackpoint-resource-cluster"
 description: |-
   Creates and manages a cluster.
@@ -13,16 +13,16 @@ Creates and manages a cluster in StackPointCloud's system
 ## Example Usage
 
 ```hcl
-resource "stackpoint_cluster" "terraform-cluster" {
-  org_id                            = "${data.stackpoint_keysets.keyset_default.org_id}"
+resource "nks_cluster" "terraform-cluster" {
+  org_id                            = "${data.nks_keysets.keyset_default.org_id}"
   cluster_name                      = "Test AWS Cluster TerraForm"
   provider_code                     = "aws"
-  provider_keyset                   = "${data.stackpoint_keysets.keyset_default.aws_keyset}"
+  provider_keyset                   = "${data.nks_keysets.keyset_default.aws_keyset}"
   region                            = "us-east-2"
   k8s_version                       = "v1.8.3"
-  startup_master_size               = "${data.stackpoint_instance_specs.master-specs.node_size}"
+  startup_master_size               = "${data.nks_instance_specs.master-specs.node_size}"
   startup_worker_count              = 2
-  startup_worker_size               = "${data.stackpoint_instance_specs.worker-specs.node_size}"
+  startup_worker_size               = "${data.nks_instance_specs.worker-specs.node_size}"
   zone                              = "us-east-2a"
   provider_network_id_requested     = "__new__"
   provider_network_cidr             = "10.0.0.0/16"
@@ -35,7 +35,7 @@ resource "stackpoint_cluster" "terraform-cluster" {
   etcd_type                         = "classic"
   platform                          = "coreos"
   channel                           = "stable"
-  ssh_keyset                        = "${data.stackpoint_keysets.keyset_default.user_ssh_keyset}"
+  ssh_keyset                        = "${data.nks_keysets.keyset_default.user_ssh_keyset}"
 }
 ```
 

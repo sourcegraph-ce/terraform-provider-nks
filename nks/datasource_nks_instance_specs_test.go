@@ -1,9 +1,10 @@
-package stackpoint
+package nks
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/resource"
 	"testing"
+
+	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccDataSourceInstanceSpecs_lookup(t *testing.T) {
@@ -18,7 +19,7 @@ func TestAccDataSourceInstanceSpecs_lookup(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccDataSourceInstanceSpecs_lookup, nodeSize),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.stackpoint_instance_specs.master-specs", "node_size", nodeSize),
+					resource.TestCheckResourceAttr("data.nks_instance_specs.master-specs", "node_size", nodeSize),
 				),
 			},
 		},
@@ -27,7 +28,7 @@ func TestAccDataSourceInstanceSpecs_lookup(t *testing.T) {
 }
 
 const testAccDataSourceInstanceSpecs_lookup = `
-data "stackpoint_instance_specs" "master-specs" {
+data "nks_instance_specs" "master-specs" {
   provider_code = "azure"
   node_size     = "%s"
 }
