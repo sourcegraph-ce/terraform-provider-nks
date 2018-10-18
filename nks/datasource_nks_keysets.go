@@ -106,7 +106,7 @@ func dataSourceNKSKeysetsRead(d *schema.ResourceData, meta interface{}) error {
 			subKeys = newKeys
 		}
 		if len(subKeys) > 1 {
-			return fmt.Errorf("there is more than keyset in category '%s' and entity '%s' refine the search with 'name' parameter ", category, entity)
+			return fmt.Errorf("there is more than one keyset in category '%s' and entity '%s' refine the search with 'name' parameter ", category, entity)
 		}
 		d.SetId(strconv.Itoa(subKeys[0].ID))
 		return nil
