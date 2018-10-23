@@ -121,10 +121,19 @@ func dataSourceNKSKeysetsRead(d *schema.ResourceData, meta interface{}) error {
 					subKeys = append(subKeys, u)
 				}
 			}
+		} else {
+			for _, u := range userKeys {
+				if u.IsDefault {
+					subKeys = append(subKeys, u)
+					break
+				}
+			}
 		}
 
 		if len(subKeys) > 1 {
 			return fmt.Errorf("there is more than one keyset in category '%s' refine the search with 'name' parameter ", category)
+		} else if len(subKeys) == 0 {
+			return fmt.Errorf("there are no keysets that match search criteria")
 		}
 		d.SetId(strconv.Itoa(subKeys[0].ID))
 		return nil
