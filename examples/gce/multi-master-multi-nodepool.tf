@@ -1,4 +1,4 @@
-provider "stackpoint" {
+provider "nks" {
   /* Set environment variable SPC_API_TOKEN with your API token from StackPointCloud    
      Set environment variable SPC_BASE_API_URL with API endpoint,   
      defaults to StackPointCloud production enviroment */

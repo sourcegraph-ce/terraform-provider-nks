@@ -23,8 +23,8 @@ func dataSourceNKSKeyset() *schema.Resource {
 				Required: true,
 				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
 					filter := v.(string)
-					if filter != "provider" && filter != "user" {
-						errors = append(errors, fmt.Errorf("category can be either 'provider' or 'user'"))
+					if filter != "provider" && filter != "user_ssh" {
+						errors = append(errors, fmt.Errorf("category can be either 'provider' or 'user_ssh'"))
 					}
 					return
 				},
@@ -84,7 +84,7 @@ func dataSourceNKSKeysetsRead(d *schema.ResourceData, meta interface{}) error {
 	for _, c := range keysets {
 		if category == "provider" {
 			providerKeys = append(providerKeys, c)
-		} else if category == "user" {
+		} else if category == "user_ssh" {
 			userKeys = append(userKeys, c)
 		}
 	}
@@ -107,6 +107,8 @@ func dataSourceNKSKeysetsRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		if len(subKeys) > 1 {
 			return fmt.Errorf("there is more than one keyset in category '%s' and entity '%s' refine the search with 'name' parameter ", category, entity)
+		} else if len(subKeys) == 0 {
+			return fmt.Errorf("there are no keysets that match search criteria")
 		}
 		d.SetId(strconv.Itoa(subKeys[0].ID))
 		return nil
@@ -119,10 +121,19 @@ func dataSourceNKSKeysetsRead(d *schema.ResourceData, meta interface{}) error {
 					subKeys = append(subKeys, u)
 				}
 			}
+		} else {
+			for _, u := range userKeys {
+				if u.IsDefault {
+					subKeys = append(subKeys, u)
+					break
+				}
+			}
 		}
 
 		if len(subKeys) > 1 {
 			return fmt.Errorf("there is more than one keyset in category '%s' refine the search with 'name' parameter ", category)
+		} else if len(subKeys) == 0 {
+			return fmt.Errorf("there are no keysets that match search criteria")
 		}
 		d.SetId(strconv.Itoa(subKeys[0].ID))
 		return nil
