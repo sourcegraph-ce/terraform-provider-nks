@@ -30,7 +30,7 @@ Or you can provide your credentials in a `.tf` configuration file as shown in th
 
 
 ```hcl
-provider "stackpoint" {
+provider "nks" {
   token    = "stackpointcloud_api_token"
   endpoint = "stackpointcloud_api_url"
 }
