@@ -45,7 +45,7 @@ func testAccCheckDStackPointSolutionDestroyCheck(s *terraform.State) error {
 		if rs.Type != "nks_solution" {
 			continue
 		}
-		client := stackpointio.NewClient(os.Getenv("SPC_API_TOKEN"), os.Getenv("SPC_BASE_API_URL"))
+		client := stackpointio.NewClient(os.Getenv("NKS_API_TOKEN"), os.Getenv("NKS_BASE_API_URL"))
 		orgID, err := strconv.Atoi(rs.Primary.Attributes["org_id"])
 		clID, err := strconv.Atoi(rs.Primary.Attributes["cluster_id"])
 		if err != nil {
@@ -87,11 +87,10 @@ func testAccCheckStackPointSolutionExists(n string, sl *stackpointio.Solution) r
 		if err != nil {
 			return err
 		}
-		client := stackpointio.NewClient(os.Getenv("SPC_BASE_API_URL"), os.Getenv("SPC_BASE_API_URL"))
+		client := stackpointio.NewClient(os.Getenv("NKS_BASE_API_URL"), os.Getenv("NKS_BASE_API_URL"))
 		solution, err := client.GetSolution(orgID, clID, slID)
 		if err != nil {
-			return fmt.Errorf("error occured while fetching cluster with ID %s: %s\ntoken: %s\nendpoint: %s\n",
-				rs.Primary.ID, err, os.Getenv("token"), os.Getenv("endpoint"))
+			return fmt.Errorf("error occured while fetching solution: %s", err)
 		}
 		sl = solution
 
@@ -112,6 +111,7 @@ data "nks_keyset" "ssh" {
 	category = "user"
 	name = "default"
 }
+
 data "nks_instance_specs" "master-specs" {
   provider_code = "azure"
   node_size     = "%s"

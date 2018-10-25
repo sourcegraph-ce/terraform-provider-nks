@@ -42,7 +42,7 @@ func dataSourceNKSInstanceSpecsRead(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 	if !stackpointio.InstanceInList(mOptions, d.Get("node_size").(string)) {
-		return fmt.Errorf("Invalid machine size for node: %s\n", d.Get("node_size").(string))
+		return fmt.Errorf("invalid machine size for node: %s", d.Get("node_size").(string))
 	}
 	d.Set("provider_code", d.Get("provider_code").(string))
 	d.Set("size", d.Get("node_size").(string))

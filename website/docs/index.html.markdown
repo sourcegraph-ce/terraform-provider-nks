@@ -19,8 +19,8 @@ The provider needs to be configured with proper credentials before it can be use
 
 
 ```hcl
-$ export SPC_API_TOKEN="stackpointcloud_api_token"
-$ export SPC_BASE_API_URL="stackpointcloud_api_url"
+$ export NKS_API_TOKEN="stackpointcloud_api_token"
+$ export NKS_BASE_API_URL="stackpointcloud_api_url"
 ```
 
 Or you can provide your credentials in a `.tf` configuration file as shown in this example.
@@ -48,9 +48,9 @@ data "nks_keysets" "keyset_default" {
 
 The following arguments are supported:
 
-* `token` - (Required) If omitted, the `SPC_API_TOKEN` environment variable is used.
+* `token` - (Required) If omitted, the `NKS_API_TOKEN` environment variable is used.
 
-* `endpoint` - (Optional) If omitted, the `SPC_BASE_API_URL` environment variable is used, or it defaults to the current production API URL.
+* `endpoint` - (Optional) If omitted, the `NKS_BASE_API_URL` environment variable is used, or it defaults to the current production API URL.
 
 
 ## Resource Timeout

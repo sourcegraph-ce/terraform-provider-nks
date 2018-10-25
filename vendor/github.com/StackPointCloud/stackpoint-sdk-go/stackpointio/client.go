@@ -44,13 +44,13 @@ func NewClient(token, endpoint string) *APIClient {
 
 // NewClientFromEnv creates a new client from environment variables
 func NewClientFromEnv() (*APIClient, error) {
-	token := os.Getenv("SPC_API_TOKEN")
+	token := os.Getenv("NKS_API_TOKEN")
 	if token == "" {
-		return nil, errors.New("Missing token env in SPC_API_TOKEN")
+		return nil, errors.New("Missing token env in NKS_API_TOKEN")
 	}
-	endpoint := os.Getenv("SPC_BASE_API_URL")
+	endpoint := os.Getenv("NKS_BASE_API_URL")
 	if endpoint == "" {
-		return nil, errors.New("Missing endpoint env in SPC_BASE_API_URL")
+		return nil, errors.New("Missing endpoint env in NKS_BASE_API_URL")
 	}
 	return NewClient(token, endpoint), nil
 }

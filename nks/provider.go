@@ -15,13 +15,13 @@ func Provider() terraform.ResourceProvider {
 			"token": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("SPC_API_TOKEN", nil),
+				DefaultFunc: schema.EnvDefaultFunc("NKS_API_TOKEN", nil),
 				Description: "The token key for API operations.",
 			},
 			"endpoint": {
 				Type:     schema.TypeString,
 				Required: true,
-				DefaultFunc: schema.EnvDefaultFunc("SPC_BASE_API_URL",
+				DefaultFunc: schema.EnvDefaultFunc("NKS_BASE_API_URL",
 					"https://api.stackpoint.io/"),
 				Description: "The endpoint URL for API operations.",
 			},

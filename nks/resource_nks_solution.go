@@ -68,7 +68,7 @@ func resourceNKSSolutionCreate(d *schema.ResourceData, meta interface{}) error {
 	if c, ok := d.GetOk("config"); ok {
 		solutionJSON := c.(string)
 		if solutionJSON == "" {
-			return fmt.Errorf("No config data sent for solution %s\n", d.Get("name").(string))
+			return fmt.Errorf("no config data sent for solution %s", d.Get("name").(string))
 		}
 		solution, err = config.Client.AddSolutionFromJSON(orgID, clusterID, solutionJSON)
 		if err != nil {

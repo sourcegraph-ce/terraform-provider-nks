@@ -11,60 +11,33 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccStackPointCluster_basic(t *testing.T) {
-	var cluster stackpointio.Cluster
-	nodeSize := "standard_f1"
-	clusterName := "TerraForm AccTest"
-	region := "eastus"
-	vpcCIDR := "10.0.0.0/16"
-	subnetCIDR := "10.0.0.0/24"
+func TestAccStackPointMasterNode_basic(t *testing.T) {
+	_, exists := os.LookupEnv("TF_ACC_MASTER_NODE_LOCK")
+	if !exists {
+		t.Skip("`TF_ACC_MASTER_NODE_LOCK` isn't specified - skipping since test will increase test time significantly")
+	}
 
+	var node stackpointio.Node
+	nodeSize := "standard_f1"
+	clusterName := "TerraForm AccTest Solution"
+	region := "eastus"
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
 		},
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDNKSClusterDestroyCheck,
+		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccNKSCluster_basic, nodeSize, clusterName, region),
+				Config: fmt.Sprintf(testAccStackPointMasterNode_basic, nodeSize, clusterName, region),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.nks_instance_specs.master-specs", "node_size", nodeSize),
-					resource.TestCheckResourceAttr("data.nks_instance_specs.worker-specs", "node_size", nodeSize),
-					resource.TestCheckResourceAttr("nks_cluster.terraform-cluster", "cluster_name", clusterName),
-					resource.TestCheckResourceAttr("nks_cluster.terraform-cluster", "region", region),
-					resource.TestCheckResourceAttr("nks_cluster.terraform-cluster", "provider_network_cidr", vpcCIDR),
-					resource.TestCheckResourceAttr("nks_cluster.terraform-cluster", "provider_subnet_cidr", subnetCIDR),
-					testAccCheckNKSClusterExists("nks_cluster.terraform-cluster", &cluster),
+					testAccCheckStackPointMasterNodeExists("nks_master_node.master", &node),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckDNKSClusterDestroyCheck(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "nks_cluster" {
-			continue
-		}
-		client := stackpointio.NewClient(os.Getenv("NKS_API_TOKEN"), os.Getenv("NKS_BASE_API_URL"))
-		orgID, err := strconv.Atoi(rs.Primary.Attributes["org_id"])
-		if err != nil {
-			return err
-		}
-		clID, err := strconv.Atoi(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		err = client.WaitClusterDeleted(orgID, clID, 3600)
-		if err != nil {
-			return fmt.Errorf("Error while waiting for cluster at ID %s to delete: %s", rs.Primary.ID, err)
-		}
-	}
-	return nil
-}
-
-func testAccCheckNKSClusterExists(n string, cl *stackpointio.Cluster) resource.TestCheckFunc {
+func testAccCheckStackPointMasterNodeExists(n string, nd *stackpointio.Node) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -80,23 +53,26 @@ func testAccCheckNKSClusterExists(n string, cl *stackpointio.Cluster) resource.T
 		if err != nil {
 			return err
 		}
-		clID, err := strconv.Atoi(rs.Primary.ID)
+		clID, err := strconv.Atoi(rs.Primary.Attributes["cluster_id"])
+		if err != nil {
+			return err
+		}
+		npID, err := strconv.Atoi(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 		client := stackpointio.NewClient(os.Getenv("NKS_BASE_API_URL"), os.Getenv("NKS_BASE_API_URL"))
-		cluster, err := client.GetCluster(orgID, clID)
+		node, err := client.GetNode(orgID, clID, npID)
 		if err != nil {
-			return fmt.Errorf("Error occured while fetching cluster with ID %s: %s\ntoken: %s\nendpoint: %s\n",
-				rs.Primary.ID, err, os.Getenv("token"), os.Getenv("endpoint"))
+			return fmt.Errorf("error occured while fetching nodepool: %s", err)
 		}
-		cl = cluster
+		nd = node
 
 		return nil
 	}
 }
 
-const testAccNKSCluster_basic = `
+const testAccStackPointMasterNode_basic = `
 data "nks_organization" "org"{
 
 }
@@ -114,10 +90,12 @@ data "nks_instance_specs" "master-specs" {
   provider_code = "azure"
   node_size     = "%s"
 }
+
 data "nks_instance_specs" "worker-specs" {
   provider_code = "azure"
   node_size     = "${data.nks_instance_specs.master-specs.node_size}"
 }
+
 resource "nks_cluster" "terraform-cluster" {
   org_id                  = "${data.nks_organization.org.id}"
   cluster_name            = "%s"
@@ -138,4 +116,15 @@ resource "nks_cluster" "terraform-cluster" {
   timeout                 = 1800
   ssh_keyset              = "${data.nks_keyset.ssh.id}"
 }
+
+resource "nks_master_node" "master" {
+	org_id               = "${data.nks_keysets.keyset_default.org_id}"
+	cluster_id           = "${nks_cluster.terraform-cluster.id}"
+	provider_code        = "azure"
+	platform             = "coreos"
+	zone                 = "us-east-2b"
+	provider_subnet_cidr = "10.0.1.0/24"
+	node_size            = "${data.nks_instance_specs.master-specs.node_size}"
+  }
+
 `

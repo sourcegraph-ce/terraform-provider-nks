@@ -32,7 +32,7 @@ website/node_modules
 
 main.tf
 vars.tf
-terraform-provider-stackpoint
+terraform-provider-nks
 
 website/vendor
 

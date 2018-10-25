@@ -29,11 +29,11 @@ func TestProvider_impl(t *testing.T) {
 }
 
 func testAccPreCheck(t *testing.T) {
-	if v := os.Getenv("SPC_API_TOKEN"); v == "" {
-		t.Fatal("SPC_API_TOKEN must be set for acceptance tests")
+	if v := os.Getenv("NKS_API_TOKEN"); v == "" {
+		t.Fatal("NKS_API_TOKEN must be set for acceptance tests")
 	}
 
-	if v := os.Getenv("SPC_BASE_API_URL"); v == "" {
-		t.Fatal("SPC_BASE_API_URL must be set for acceptance tests")
+	if v := os.Getenv("NKS_BASE_API_URL"); v == "" {
+		t.Fatal("NKS_BASE_API_URL must be set for acceptance tests")
 	}
 }
