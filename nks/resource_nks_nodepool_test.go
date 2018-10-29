@@ -19,7 +19,7 @@ func TestAccStackPointNodepool_basic(t *testing.T) {
 
 	var np stackpointio.NodePool
 	nodeSize := "standard_f1"
-	clusterName := "TerraForm AccTest Solution"
+	clusterName := "TerraForm AccTest Nodepool"
 	region := "eastus"
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -82,7 +82,7 @@ data "nks_keyset" "keyset_default" {
 }
 
 data "nks_keyset" "ssh" {
-	category = "user"
+	category = "user_ssh"
 	name = "default"
 }
 
@@ -123,7 +123,7 @@ resource "nks_nodepool" "nodepool" {
 	provider_code        = "azure"
 	platform             = "coreos"
 	zone                 = "us-east-2b"
-	provider_subnet_cidr = "10.0.1.0/24"
+	// provider_subnet_cidr = "10.0.1.0/24"
 	worker_count         = 1
 	worker_size          = "${data.nks_instance_specs.worker-specs.node_size}"
   }

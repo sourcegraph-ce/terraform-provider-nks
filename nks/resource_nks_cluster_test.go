@@ -14,7 +14,7 @@ import (
 func TestAccStackPointCluster_basic(t *testing.T) {
 	var cluster stackpointio.Cluster
 	nodeSize := "standard_f1"
-	clusterName := "TerraForm AccTest"
+	clusterName := "TerraForm Acceptance Test"
 	region := "eastus"
 	vpcCIDR := "10.0.0.0/16"
 	subnetCIDR := "10.0.0.0/24"
@@ -106,7 +106,7 @@ data "nks_keyset" "keyset_default" {
 }
 
 data "nks_keyset" "ssh" {
-	category = "user"
+	category = "user_ssh"
 	name = "default"
 }
 

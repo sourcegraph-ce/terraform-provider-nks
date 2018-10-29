@@ -19,7 +19,7 @@ func TestAccStackPointMasterNode_basic(t *testing.T) {
 
 	var node stackpointio.Node
 	nodeSize := "standard_f1"
-	clusterName := "TerraForm AccTest Solution"
+	clusterName := "TerraForm AccTest Master node"
 	region := "eastus"
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -82,7 +82,7 @@ data "nks_keyset" "keyset_default" {
 }
 
 data "nks_keyset" "ssh" {
-	category = "user"
+	category = "user_ssh"
 	name = "default"
 }
 
@@ -118,7 +118,7 @@ resource "nks_cluster" "terraform-cluster" {
 }
 
 resource "nks_master_node" "master" {
-	org_id               = "${data.nks_keysets.keyset_default.org_id}"
+	org_id               = "${data.nks_organization.org.org_id}"
 	cluster_id           = "${nks_cluster.terraform-cluster.id}"
 	provider_code        = "azure"
 	platform             = "coreos"

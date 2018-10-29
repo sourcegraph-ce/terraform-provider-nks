@@ -108,7 +108,7 @@ data "nks_keyset" "keyset_default" {
 }
 
 data "nks_keyset" "ssh" {
-	category = "user"
+	category = "user_ssh"
 	name = "default"
 }
 
