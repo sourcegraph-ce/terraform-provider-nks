@@ -192,10 +192,10 @@ func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	// Grab provider-specific fields
 	if d.Get("provider_code").(string) == "aws" {
 		if _, ok := d.GetOk("region"); !ok {
-			return fmt.Errorf("StackPoint needs region for AWS clusters.")
+			return fmt.Errorf("NKS needs region for AWS clusters.")
 		}
 		if _, ok := d.GetOk("zone"); !ok {
-			return fmt.Errorf("StackPoint needs zone for AWS clusters.")
+			return fmt.Errorf("NKS needs zone for AWS clusters.")
 		}
 		// Allow user to submit values for provider_network_id_requested, and put real value in computed provider_network_id
 		if _, ok := d.GetOk("provider_network_id_requested"); !ok {
@@ -224,7 +224,7 @@ func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	} else if d.Get("provider_code").(string) == "do" || d.Get("provider_code").(string) == "gce" ||
 		d.Get("provider_code").(string) == "gke" || d.Get("provider_code").(string) == "oneandone" {
 		if _, ok := d.GetOk("region"); !ok {
-			return fmt.Errorf("StackPoint needs region for DigitalOcean/GCE/GKE clusters.")
+			return fmt.Errorf("NKS needs region for DigitalOcean/GCE/GKE clusters.")
 		}
 		newCluster.Region = d.Get("region").(string)
 	} else if d.Get("provider_code").(string) == "azure" {
@@ -235,7 +235,7 @@ func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 			newCluster.ProviderResourceGp = d.Get("provider_resource_group_requested").(string)
 		}
 		if _, ok := d.GetOk("region"); !ok {
-			return fmt.Errorf("StackPoint needs region for Azure clusters.")
+			return fmt.Errorf("NKS needs region for Azure clusters.")
 		}
 		// Allow user to submit values for provider_network_id_requested, and put real value in computed provider_network_id
 		if _, ok := d.GetOk("provider_network_id_requested"); !ok {
@@ -262,10 +262,10 @@ func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 		newCluster.Region = d.Get("region").(string)
 	} else if d.Get("provider_code").(string) == "packet" {
 		if _, ok := d.GetOk("region"); !ok {
-			return fmt.Errorf("StackPoint needs region for Packet clusters.")
+			return fmt.Errorf("NKS needs region for Packet clusters.")
 		}
 		if _, ok := d.GetOk("project_id"); !ok {
-			return fmt.Errorf("StackPoint needs project_id for Packet clusters.")
+			return fmt.Errorf("NKS needs project_id for Packet clusters.")
 		}
 		newCluster.Region = d.Get("region").(string)
 		newCluster.ProjectID = d.Get("project_id").(string)

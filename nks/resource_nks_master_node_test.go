@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccStackPointMasterNode_basic(t *testing.T) {
+func TestAccNKSMasterNode_basic(t *testing.T) {
 	_, exists := os.LookupEnv("TF_ACC_MASTER_NODE_LOCK")
 	if !exists {
 		t.Skip("`TF_ACC_MASTER_NODE_LOCK` isn't specified - skipping since test will increase test time significantly")
@@ -28,16 +28,16 @@ func TestAccStackPointMasterNode_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccStackPointMasterNode_basic, nodeSize, clusterName, region),
+				Config: fmt.Sprintf(testAccNKSMasterNode_basic, nodeSize, clusterName, region),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckStackPointMasterNodeExists("nks_master_node.master", &node),
+					testAccCheckNKSMasterNodeExists("nks_master_node.master", &node),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckStackPointMasterNodeExists(n string, nd *stackpointio.Node) resource.TestCheckFunc {
+func testAccCheckNKSMasterNodeExists(n string, nd *stackpointio.Node) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -72,7 +72,7 @@ func testAccCheckStackPointMasterNodeExists(n string, nd *stackpointio.Node) res
 	}
 }
 
-const testAccStackPointMasterNode_basic = `
+const testAccNKSMasterNode_basic = `
 data "nks_organization" "org"{
 
 }

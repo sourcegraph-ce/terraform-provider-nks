@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccStackPointSolution_basic(t *testing.T) {
+func TestAccNKSSolution_basic(t *testing.T) {
 	_, exists := os.LookupEnv("TF_ACC_SOLUTION_LOCK")
 	if !exists {
 		t.Skip("`TF_ACC_SOLUTION_LOCK` isn't specified - skipping since test will increase test time significantly")
@@ -27,43 +27,19 @@ func TestAccStackPointSolution_basic(t *testing.T) {
 			testAccPreCheck(t)
 		},
 		Providers: testAccProviders,
-		// CheckDestroy: testAccCheckDStackPointSolutionDestroyCheck,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccStackPointSolution_basic, nodeSize, clusterName, region, solutionName),
+				Config: fmt.Sprintf(testAccNKSSolution_basic, nodeSize, clusterName, region, solutionName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("nks_solution.efk", "solution", solutionName),
-					testAccCheckStackPointSolutionExists("nks_solution.efk", &solution),
+					testAccCheckNKSSolutionExists("nks_solution.efk", &solution),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckDStackPointSolutionDestroyCheck(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "nks_solution" {
-			continue
-		}
-		client := stackpointio.NewClient(os.Getenv("NKS_API_TOKEN"), os.Getenv("NKS_BASE_API_URL"))
-		orgID, err := strconv.Atoi(rs.Primary.Attributes["org_id"])
-		clID, err := strconv.Atoi(rs.Primary.Attributes["cluster_id"])
-		if err != nil {
-			return err
-		}
-		slID, err := strconv.Atoi(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		err = client.WaitSolutionDeleted(orgID, clID, slID, 3600)
-		if err != nil {
-			return fmt.Errorf("Error while waiting for cluster at ID %s to delete: %s", rs.Primary.ID, err)
-		}
-	}
-	return nil
-}
-
-func testAccCheckStackPointSolutionExists(n string, sl *stackpointio.Solution) resource.TestCheckFunc {
+func testAccCheckNKSSolutionExists(n string, sl *stackpointio.Solution) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -98,7 +74,7 @@ func testAccCheckStackPointSolutionExists(n string, sl *stackpointio.Solution) r
 	}
 }
 
-const testAccStackPointSolution_basic = `
+const testAccNKSSolution_basic = `
 data "nks_organization" "org"{
 
 }

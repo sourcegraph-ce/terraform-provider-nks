@@ -1,12 +1,12 @@
 ---
-layout: "stackpoint"
-page_title: "StackPoint : nks_instances"
-sidebar_current: "docs-stackpoint-datasource-instances"
+layout: "nks"
+page_title: "NKS : nks_instances"
+sidebar_current: "docs-nks-datasource-instances"
 description: |-
-  Get information on a StackPoint Instances
+  Get information on a NKS Instances
 ---
 
-# stackpoint\_instances
+# nks\_instances
 
 The instance specs data source can be used to select and validate a node size. You can provide a string for the name of the instance size and our system will validate that it is a valid instance size for nodes on that cloud provider.
 

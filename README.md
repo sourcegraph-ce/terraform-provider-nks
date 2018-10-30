@@ -16,17 +16,17 @@ Requirements
 Building The Provider
 ---------------------
 
-Clone repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-stackpoint`
+Clone repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-nks`
 
 ```sh
 $ mkdir -p $GOPATH/src/github.com/terraform-providers; cd $GOPATH/src/github.com/terraform-providers
-$ git clone git@github.com:terraform-providers/terraform-provider-stackpoint
+$ git clone git@github.com:terraform-providers/terraform-provider-nks
 ```
 
 Enter the provider directory and build the provider
 
 ```sh
-$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-stackpoint
+$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-nks
 $ make build
 ```
 

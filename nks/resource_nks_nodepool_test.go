@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccStackPointNodepool_basic(t *testing.T) {
+func TestAccNKSNodepool_basic(t *testing.T) {
 	_, exists := os.LookupEnv("TF_ACC_NODEPOOL_LOCK")
 	if !exists {
 		t.Skip("`TF_ACC_NODEPOOL_LOCK` isn't specified - skipping since test will increase test time significantly")
@@ -28,16 +28,16 @@ func TestAccStackPointNodepool_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccStackPointNodePool_basic, nodeSize, clusterName, region),
+				Config: fmt.Sprintf(testAccNKSNodePool_basic, nodeSize, clusterName, region),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckStackPointNodepoolExists("nks_nodepool.nodepool", &np),
+					testAccCheckNKSNodepoolExists("nks_nodepool.nodepool", &np),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckStackPointNodepoolExists(n string, sl *stackpointio.NodePool) resource.TestCheckFunc {
+func testAccCheckNKSNodepoolExists(n string, sl *stackpointio.NodePool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -72,7 +72,7 @@ func testAccCheckStackPointNodepoolExists(n string, sl *stackpointio.NodePool) r
 	}
 }
 
-const testAccStackPointNodePool_basic = `
+const testAccNKSNodePool_basic = `
 data "nks_organization" "org"{
 
 }
