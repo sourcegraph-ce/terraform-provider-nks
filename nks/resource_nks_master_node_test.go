@@ -118,7 +118,7 @@ resource "nks_cluster" "terraform-cluster" {
 }
 
 resource "nks_master_node" "master" {
-	org_id               = "${data.nks_organization.org.org_id}"
+	org_id               = "${data.nks_organization.org.id}"
 	cluster_id           = "${nks_cluster.terraform-cluster.id}"
 	provider_code        = "azure"
 	platform             = "coreos"

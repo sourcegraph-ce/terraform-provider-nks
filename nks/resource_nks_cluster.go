@@ -290,7 +290,7 @@ func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("timeout"); ok {
 		timeout = v.(int)
 	}
-	if err = config.Client.WaitClusterRunning(orgID, cluster.ID, false, timeout); err != nil {
+	if err = config.Client.WaitClusterRunning(orgID, cluster.ID, true, timeout); err != nil {
 		log.Printf("[DEBUG] Cluster error at WaitClusterProvisioned: %s", err)
 		return err
 	}
@@ -374,7 +374,7 @@ func resourceNKSClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 		if v, ok := d.GetOk("timeout"); ok {
 			timeout = v.(int)
 		}
-		if err = config.Client.WaitClusterRunning(orgID, clusterID, false, timeout); err != nil {
+		if err = config.Client.WaitClusterRunning(orgID, clusterID, true, timeout); err != nil {
 			log.Printf("[DEBUG] Cluster error at WaitClusterDeleted: %s", err)
 			return err
 		}
