@@ -142,7 +142,7 @@ func resourceNKSCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"kubeconfig_path": {
+			"kubeconfig": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -336,7 +336,6 @@ func resourceNKSClusterRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("k8s_version", cluster.KubernetesVersion)
 	d.Set("dashboard_enabled", cluster.DashboardEnabled)
 	d.Set("dashboard_installed", cluster.DashboardInstalled)
-	d.Set("kubeconfig_path", cluster.KubeconfigPath)
 	d.Set("rbac_enabled", cluster.RbacEnabled)
 	d.Set("master_count", cluster.MasterCount)
 	d.Set("master_size", cluster.MasterSize)
@@ -345,6 +344,12 @@ func resourceNKSClusterRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("image", cluster.Image)
 	d.Set("channel", cluster.Channel)
 	d.Set("k8s_version_upgrades", cluster.KubernetesMigrationVersions)
+
+	kubeconfig, err := config.Client.GetKubeConfig(orgID, clusterID)
+	if err != nil {
+		return err
+	}
+	d.Set("kubeconfig", kubeconfig)
 
 	return nil
 }
