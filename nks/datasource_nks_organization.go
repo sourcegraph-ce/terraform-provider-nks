@@ -31,11 +31,12 @@ func dataSourceNKSOrganizationRead(d *schema.ResourceData, meta interface{}) err
 		if err != nil {
 			return err
 		}
-
-		for _, org := range userProfile[0].OrgMems {
-			if org.IsDefault {
-				d.SetId(strconv.Itoa(org.Org.ID))
-				return nil
+		if len(userProfile) > 0 {
+			for _, org := range userProfile[0].OrgMems {
+				if org.IsDefault {
+					d.SetId(strconv.Itoa(org.Org.ID))
+					return nil
+				}
 			}
 		}
 	}

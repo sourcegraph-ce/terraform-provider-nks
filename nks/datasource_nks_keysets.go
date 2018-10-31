@@ -64,13 +64,15 @@ func dataSourceNKSKeysetsRead(d *schema.ResourceData, meta interface{}) error {
 
 	// Fetch userprofile based on API token
 	userProfile, err := config.Client.GetUserProfile()
-	if orgID == 0 {
+	if orgID == 0 && len(userProfile) > 0 {
 		for _, org := range userProfile[0].OrgMems {
 			if org.IsDefault {
 				orgID = org.Org.ID
 				break
 			}
 		}
+	} else if len(userProfile) == 0 {
+		return fmt.Errorf("userprofile not found please check your credentials and the API endpoint")
 	}
 
 	keysets, err := config.Client.GetKeysets(orgID)
