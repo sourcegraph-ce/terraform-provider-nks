@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccStackPointCluster_basic(t *testing.T) {
+func TestAccNKS_basic(t *testing.T) {
 	var cluster stackpointio.Cluster
 	nodeSize := "standard_f1"
 	clusterName := "TerraForm Acceptance Test"
@@ -47,7 +47,7 @@ func testAccCheckDNKSClusterDestroyCheck(s *terraform.State) error {
 		if rs.Type != "nks_cluster" {
 			continue
 		}
-		client := stackpointio.NewClient(os.Getenv("NKS_API_TOKEN"), os.Getenv("NKS_BASE_API_URL"))
+		client := stackpointio.NewClient(os.Getenv("NKS_API_TOKEN"), os.Getenv("NKS_API_URL"))
 		orgID, err := strconv.Atoi(rs.Primary.Attributes["org_id"])
 		if err != nil {
 			return err
@@ -84,7 +84,7 @@ func testAccCheckNKSClusterExists(n string, cl *stackpointio.Cluster) resource.T
 		if err != nil {
 			return err
 		}
-		client := stackpointio.NewClient(os.Getenv("NKS_BASE_API_URL"), os.Getenv("NKS_BASE_API_URL"))
+		client := stackpointio.NewClient(os.Getenv("NKS_API_URL"), os.Getenv("NKS_API_URL"))
 		cluster, err := client.GetCluster(orgID, clID)
 		if err != nil {
 			return fmt.Errorf("Error occured while fetching cluster with ID %s: %s\ntoken: %s\nendpoint: %s\n",

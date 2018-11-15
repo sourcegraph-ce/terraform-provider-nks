@@ -1,14 +1,14 @@
 ---
-layout: "stackpoint"
-page_title: "StackPoint: nks_cluster"
-sidebar_current: "docs-stackpoint-resource-cluster"
+layout: "nks"
+page_title: "NKS: nks_cluster"
+sidebar_current: "docs-nks-resource-cluster"
 description: |-
   Creates and manages a cluster.
 ---
 
-# stackpoint\_cluster
+# nks\_cluster
 
-Creates and manages a cluster in StackPointCloud's system
+Creates and manages a cluster in NKS's system
 
 ## Example Usage
 

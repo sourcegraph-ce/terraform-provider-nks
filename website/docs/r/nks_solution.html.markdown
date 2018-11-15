@@ -1,14 +1,14 @@
 ---
-layout: "stackpoint"
-page_title: "StackPoint: nks_solution"
-sidebar_current: "docs-stackpoint-resource-solution"
+layout: "nks"
+page_title: "NKS: nks_solution"
+sidebar_current: "docs-nks-resource-solution"
 description: |-
   Installs and manages a solution in a cluster
 ---
 
-# stackpoint\_solution
+# nks\_solution
 
-Installs and manages a solution in a cluster in StackPointCloud's system
+Installs and manages a solution in a cluster in NKS's system
 
 ## Example Usage
 

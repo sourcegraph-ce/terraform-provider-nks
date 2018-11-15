@@ -33,7 +33,7 @@ func testAccPreCheck(t *testing.T) {
 		t.Fatal("NKS_API_TOKEN must be set for acceptance tests")
 	}
 
-	if v := os.Getenv("NKS_BASE_API_URL"); v == "" {
-		t.Fatal("NKS_BASE_API_URL must be set for acceptance tests")
+	if v := os.Getenv("NKS_API_URL"); v == "" {
+		t.Fatal("NKS_API_URL must be set for acceptance tests")
 	}
 }

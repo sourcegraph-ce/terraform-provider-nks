@@ -1,14 +1,14 @@
 ---
-layout: "stackpoint"
-page_title: "StackPoint: nks_nodepool"
-sidebar_current: "docs-stackpoint-resource-nodepool"
+layout: "nks"
+page_title: "NKS: nks_nodepool"
+sidebar_current: "docs-nks-resource-nodepool"
 description: |-
   Creates and manages an additional nodepool of worker nodes.
 ---
 
-# stackpoint\_nodepool
+# nks\_nodepool
 
-Creates and manages an additional nodepool of worker nodes in StackPointCloud's system
+Creates and manages an additional nodepool of worker nodes in NKS's system
 
 ## Example Usage
 

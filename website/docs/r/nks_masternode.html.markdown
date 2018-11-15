@@ -1,14 +1,14 @@
 ---
-layout: "stackpoint"
-page_title: "StackPoint: nks_masternode"
-sidebar_current: "docs-stackpoint-resource-masternode"
+layout: "nks"
+page_title: "nks: nks_masternode"
+sidebar_current: "docs-nks-resource-masternode"
 description: |-
   Creates and manages an additional master node.
 ---
 
-# stackpoint\_masternode
+# nks\_masternode
 
-Creates and manages an additional master node in StackPointCloud's system for high-availability
+Creates and manages an additional master node in NKS's system for high-availability
 
 ## Example Usage
 

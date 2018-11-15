@@ -63,7 +63,7 @@ func testAccCheckNKSSolutionExists(n string, sl *stackpointio.Solution) resource
 		if err != nil {
 			return err
 		}
-		client := stackpointio.NewClient(os.Getenv("NKS_BASE_API_URL"), os.Getenv("NKS_BASE_API_URL"))
+		client := stackpointio.NewClient(os.Getenv("NKS_API_URL"), os.Getenv("NKS_API_URL"))
 		solution, err := client.GetSolution(orgID, clID, slID)
 		if err != nil {
 			return fmt.Errorf("error occured while fetching solution: %s", err)

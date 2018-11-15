@@ -21,7 +21,7 @@ func Provider() terraform.ResourceProvider {
 			"endpoint": {
 				Type:     schema.TypeString,
 				Required: true,
-				DefaultFunc: schema.EnvDefaultFunc("NKS_BASE_API_URL",
+				DefaultFunc: schema.EnvDefaultFunc("NKS_API_URL",
 					"https://api.stackpoint.io/"),
 				Description: "The endpoint URL for API operations.",
 			},

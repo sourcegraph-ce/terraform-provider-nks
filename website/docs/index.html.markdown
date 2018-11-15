@@ -1,14 +1,14 @@
 ---
-layout: "stackpoint"
-page_title: "Provider: StackPoint"
-sidebar_current: "docs-stackpoint-index"
+layout: "nks"
+page_title: "Provider: NKS"
+sidebar_current: "docs-nks-index"
 description: |-
-  A provider for StackPointCloud.
+  A provider for NKS.
 ---
 
-# StackPoint Provider
+# NKS Provider
 
-The StackPoint provider gives the ability to deploy and configure resources using the StackPointCloud API.
+The NKS provider gives the ability to deploy and configure resources using the NKS API.
 
 Use the navigation to the left to read about the available data sources and resources.
 
@@ -19,8 +19,8 @@ The provider needs to be configured with proper credentials before it can be use
 
 
 ```hcl
-$ export NKS_API_TOKEN="stackpointcloud_api_token"
-$ export NKS_BASE_API_URL="stackpointcloud_api_url"
+$ export NKS_API_TOKEN="nks_api_token"
+$ export NKS_API_URL="nks_api_url"
 ```
 
 Or you can provide your credentials in a `.tf` configuration file as shown in this example.
@@ -31,8 +31,8 @@ Or you can provide your credentials in a `.tf` configuration file as shown in th
 
 ```hcl
 provider "nks" {
-  token    = "stackpointcloud_api_token"
-  endpoint = "stackpointcloud_api_url"
+  token    = "nks_api_token"
+  endpoint = "nks_api_url"
 }
 
 data "nks_keysets" "keyset_default" {
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `token` - (Required) If omitted, the `NKS_API_TOKEN` environment variable is used.
 
-* `endpoint` - (Optional) If omitted, the `NKS_BASE_API_URL` environment variable is used, or it defaults to the current production API URL.
+* `endpoint` - (Optional) If omitted, the `NKS_API_URL` environment variable is used, or it defaults to the current production API URL.
 
 
 ## Resource Timeout

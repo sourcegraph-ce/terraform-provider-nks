@@ -61,7 +61,7 @@ func testAccCheckNKSNodepoolExists(n string, sl *stackpointio.NodePool) resource
 		if err != nil {
 			return err
 		}
-		client := stackpointio.NewClient(os.Getenv("NKS_BASE_API_URL"), os.Getenv("NKS_BASE_API_URL"))
+		client := stackpointio.NewClient(os.Getenv("NKS_API_URL"), os.Getenv("NKS_API_URL"))
 		solution, err := client.GetNodePool(orgID, clID, npID)
 		if err != nil {
 			return fmt.Errorf("error occured while fetching nodepool: %s", err)
