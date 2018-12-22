@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/StackPointCloud/nks-sdk-go/nks"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -41,7 +41,7 @@ func dataSourceNKSInstanceSpecsRead(d *schema.ResourceData, meta interface{}) er
 		log.Printf("[DEBUG] InstanceSpecs GetInstanceSpecs failed: %s\n", err)
 		return err
 	}
-	if !stackpointio.InstanceInList(mOptions, d.Get("node_size").(string)) {
+	if !nks.InstanceInList(mOptions, d.Get("node_size").(string)) {
 		return fmt.Errorf("invalid machine size for node: %s", d.Get("node_size").(string))
 	}
 	d.Set("provider_code", d.Get("provider_code").(string))

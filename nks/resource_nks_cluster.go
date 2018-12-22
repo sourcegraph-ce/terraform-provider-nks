@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/StackPointCloud/nks-sdk-go/nks"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -172,7 +172,7 @@ func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	sshKeyID := d.Get("ssh_keyset").(int)
 
 	// Set up cluster structure based on input from user
-	newCluster := stackpointio.Cluster{
+	newCluster := nks.Cluster{
 		Name:              d.Get("cluster_name").(string),
 		Provider:          d.Get("provider_code").(string),
 		ProviderKey:       d.Get("provider_keyset").(int),
@@ -187,7 +187,7 @@ func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 		Platform:          d.Get("platform").(string),
 		Channel:           d.Get("channel").(string),
 		SSHKeySet:         sshKeyID,
-		Solutions:         []stackpointio.Solution{}, // helm_tiller will get automatically installed
+		Solutions:         []nks.Solution{}, // helm_tiller will get automatically installed
 	}
 	// Grab provider-specific fields
 	if d.Get("provider_code").(string) == "aws" {

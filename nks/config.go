@@ -1,11 +1,11 @@
 package nks
 
 import (
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/StackPointCloud/nks-sdk-go/nks"
 )
 
 type Config struct {
 	Token    string
 	EndPoint string
-	Client   *stackpointio.APIClient
+	Client   *nks.APIClient
 }
