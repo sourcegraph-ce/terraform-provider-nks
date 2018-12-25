@@ -3,7 +3,7 @@ package nks
 import (
 	"time"
 
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/StackPointCloud/nks-sdk-go/nks"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -45,7 +45,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	config := Config{
 		Token:    d.Get("token").(string),
 		EndPoint: d.Get("endpoint").(string),
-		Client:   stackpointio.NewClient(d.Get("token").(string), d.Get("endpoint").(string)),
+		Client:   nks.NewClient(d.Get("token").(string), d.Get("endpoint").(string)),
 	}
 	return &config, nil
 }

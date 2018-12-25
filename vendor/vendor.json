@@ -3,10 +3,10 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "qXFv19iOe9Sil4Wx3L/0cfnA1sA=",
-			"path": "github.com/StackPointCloud/stackpoint-sdk-go/stackpointio",
-			"revision": "7beb0ca36c520deefa7b225f39f0c2b834ca47f7",
-			"revisionTime": "2018-10-30T21:58:19Z"
+			"checksumSHA1": "xEDYxnKsRcdy0tQXUmgooqG3YgM=",
+			"path": "github.com/StackPointCloud/nks-sdk-go/nks",
+			"revision": "abc12d88d04e77a9ae4b7c17d7a984d4c3e64c86",
+			"revisionTime": "2018-12-20T19:54:10Z"
 		},
 		{
 			"checksumSHA1": "jQh1fnoKPKMURvKkpdRjN695nAQ=",

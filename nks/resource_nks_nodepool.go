@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/StackPointCloud/nks-sdk-go/nks"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -101,7 +101,7 @@ func resourceNKSNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
 	clusterID := d.Get("cluster_id").(int)
 	orgID := d.Get("org_id").(int)
 
-	newNodepool := stackpointio.NodePool{
+	newNodepool := nks.NodePool{
 		Name:      "TerraForm NodePool",
 		NodeCount: d.Get("worker_count").(int),
 		Size:      d.Get("worker_size").(string),
@@ -235,7 +235,7 @@ func resourceNKSNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 			}
 		} else {
 			// Increase worker count
-			newNode := stackpointio.NodeAddToPool{
+			newNode := nks.NodeAddToPool{
 				Count:      (newVi - oldVi),
 				Role:       "worker",
 				NodePoolID: nodepoolID,
@@ -277,7 +277,7 @@ func resourceNKSNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 	for i := 0; i < len(nodes); i++ {
 		// Delete node if active
-		if nodes[i].State == stackpointio.NodeRunningStateString {
+		if nodes[i].State == nks.NodeRunningStateString {
 			if err = config.Client.DeleteNode(orgID, clusterID, nodes[i].ID); err != nil {
 				log.Printf("[DEBUG] Nodepool DeleteNode failed: %s\n", err)
 				return err

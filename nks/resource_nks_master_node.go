@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/StackPointCloud/nks-sdk-go/nks"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -91,7 +91,7 @@ func resourceNKSMasterNodeCreate(d *schema.ResourceData, meta interface{}) error
 	orgID := d.Get("org_id").(int)
 
 	// Set up new master node
-	newNode := stackpointio.NodeAdd{
+	newNode := nks.NodeAdd{
 		Count: 1,
 		Role:  "master",
 		Size:  d.Get("node_size").(string),

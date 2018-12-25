@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/StackPointCloud/nks-sdk-go/nks"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -17,7 +17,7 @@ func TestAccNKSNodepool_basic(t *testing.T) {
 		t.Skip("`TF_ACC_NODEPOOL_LOCK` isn't specified - skipping since test will increase test time significantly")
 	}
 
-	var np stackpointio.NodePool
+	var np nks.NodePool
 	nodeSize := "standard_f1"
 	clusterName := "TerraForm AccTest Nodepool"
 	region := "eastus"
@@ -37,7 +37,7 @@ func TestAccNKSNodepool_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckNKSNodepoolExists(n string, sl *stackpointio.NodePool) resource.TestCheckFunc {
+func testAccCheckNKSNodepoolExists(n string, sl *nks.NodePool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -61,7 +61,7 @@ func testAccCheckNKSNodepoolExists(n string, sl *stackpointio.NodePool) resource
 		if err != nil {
 			return err
 		}
-		client := stackpointio.NewClient(os.Getenv("NKS_API_URL"), os.Getenv("NKS_API_URL"))
+		client := nks.NewClient(os.Getenv("NKS_API_URL"), os.Getenv("NKS_API_URL"))
 		solution, err := client.GetNodePool(orgID, clID, npID)
 		if err != nil {
 			return fmt.Errorf("error occured while fetching nodepool: %s", err)

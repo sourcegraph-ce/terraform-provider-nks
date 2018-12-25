@@ -6,13 +6,13 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/StackPointCloud/nks-sdk-go/nks"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccNKS_basic(t *testing.T) {
-	var cluster stackpointio.Cluster
+	var cluster nks.Cluster
 	nodeSize := "standard_f1"
 	clusterName := "TerraForm Acceptance Test"
 	region := "eastus"
@@ -47,7 +47,7 @@ func testAccCheckDNKSClusterDestroyCheck(s *terraform.State) error {
 		if rs.Type != "nks_cluster" {
 			continue
 		}
-		client := stackpointio.NewClient(os.Getenv("NKS_API_TOKEN"), os.Getenv("NKS_API_URL"))
+		client := nks.NewClient(os.Getenv("NKS_API_TOKEN"), os.Getenv("NKS_API_URL"))
 		orgID, err := strconv.Atoi(rs.Primary.Attributes["org_id"])
 		if err != nil {
 			return err
@@ -64,7 +64,7 @@ func testAccCheckDNKSClusterDestroyCheck(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckNKSClusterExists(n string, cl *stackpointio.Cluster) resource.TestCheckFunc {
+func testAccCheckNKSClusterExists(n string, cl *nks.Cluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -84,7 +84,7 @@ func testAccCheckNKSClusterExists(n string, cl *stackpointio.Cluster) resource.T
 		if err != nil {
 			return err
 		}
-		client := stackpointio.NewClient(os.Getenv("NKS_API_URL"), os.Getenv("NKS_API_URL"))
+		client := nks.NewClient(os.Getenv("NKS_API_URL"), os.Getenv("NKS_API_URL"))
 		cluster, err := client.GetCluster(orgID, clID)
 		if err != nil {
 			return fmt.Errorf("Error occured while fetching cluster with ID %s: %s\ntoken: %s\nendpoint: %s\n",

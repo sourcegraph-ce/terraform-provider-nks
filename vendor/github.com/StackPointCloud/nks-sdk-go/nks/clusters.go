@@ -1,4 +1,4 @@
-package stackpointio
+package nks
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ const (
 	ClusterBuildLogEventFailed = "failure"
 )
 
-// Cluster describes a Kubernetes cluster in the StackPointCloud system
+// Cluster describes a Kubernetes cluster in the NetApp Kubernetes Service system
 type Cluster struct {
 	ID                          int        `json:"pk"`
 	Name                        string     `json:"name"`
@@ -83,12 +83,15 @@ func (c *APIClient) GetCluster(orgID, clusterID int) (cl *Cluster, err error) {
 // GetKubeConfig returns kubeconfig string.
 func (c *APIClient) GetKubeConfig(orgID, clusterID int) (kubeconfig string, err error) {
 	req := &APIReq{
-		Method:       "GET",
-		Path:         fmt.Sprintf("/orgs/%d/clusters/%d/kubeconfig", orgID, clusterID),
-		ResponseObj:  kubeconfig,
-		WantedStatus: 200,
+		Method:         "GET",
+		Path:           fmt.Sprintf("/orgs/%d/clusters/%d/kubeconfig", orgID, clusterID),
+		ResponseObj:    kubeconfig,
+		WantedStatus:   200,
+		DontUnmarsahal: true,
 	}
-	return c.runRequestSpecial(req)
+	err = c.runRequest(req)
+	kubeconfig = req.ResponseString
+	return
 }
 
 // CreateCluster requests cluster creation
@@ -180,7 +183,7 @@ func convertVersionToInts(v string) (major, minor, patch int, err error) {
 	return
 }
 
-// WaitClusterProvisioned waits until cluster reaches the running state (configured as const above)
+// WaitClusterRunning waits until cluster reaches the running state (configured as const above)
 func (c *APIClient) WaitClusterRunning(orgID, clusterID int, isProvisioning bool, timeout int) error {
 	for i := 1; i < timeout; i++ {
 		cl, err := c.GetCluster(orgID, clusterID)

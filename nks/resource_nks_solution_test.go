@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/StackPointCloud/nks-sdk-go/nks"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -17,7 +17,7 @@ func TestAccNKSSolution_basic(t *testing.T) {
 		t.Skip("`TF_ACC_SOLUTION_LOCK` isn't specified - skipping since test will increase test time significantly")
 	}
 
-	var solution stackpointio.Solution
+	var solution nks.Solution
 	nodeSize := "standard_f1"
 	clusterName := "TerraForm AccTest Solution"
 	region := "eastus"
@@ -39,7 +39,7 @@ func TestAccNKSSolution_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckNKSSolutionExists(n string, sl *stackpointio.Solution) resource.TestCheckFunc {
+func testAccCheckNKSSolutionExists(n string, sl *nks.Solution) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -63,7 +63,7 @@ func testAccCheckNKSSolutionExists(n string, sl *stackpointio.Solution) resource
 		if err != nil {
 			return err
 		}
-		client := stackpointio.NewClient(os.Getenv("NKS_API_URL"), os.Getenv("NKS_API_URL"))
+		client := nks.NewClient(os.Getenv("NKS_API_URL"), os.Getenv("NKS_API_URL"))
 		solution, err := client.GetSolution(orgID, clID, slID)
 		if err != nil {
 			return fmt.Errorf("error occured while fetching solution: %s", err)

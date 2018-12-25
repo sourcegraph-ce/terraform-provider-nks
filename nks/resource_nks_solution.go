@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/StackPointCloud/nks-sdk-go/nks"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -62,7 +62,7 @@ func resourceNKSSolutionCreate(d *schema.ResourceData, meta interface{}) error {
 	// If config file is sent, use that to try to install solution
 	log.Printf("[DEBUG] Solution create attempting to add solution: %s\n", d.Get("name").(string))
 	var (
-		solution *stackpointio.Solution
+		solution *nks.Solution
 		err      error
 	)
 	if c, ok := d.GetOk("config"); ok {
@@ -77,7 +77,7 @@ func resourceNKSSolutionCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	} else {
 		// No config file sent, try to install solution simply by name
-		newSolution := stackpointio.Solution{
+		newSolution := nks.Solution{
 			Solution: d.Get("solution").(string),
 			State:    "draft",
 		}

@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/StackPointCloud/stackpoint-sdk-go/stackpointio"
+	"github.com/StackPointCloud/nks-sdk-go/nks"
 
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -80,8 +80,8 @@ func dataSourceNKSKeysetsRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	var userKeys []stackpointio.Keyset
-	var providerKeys []stackpointio.Keyset
+	var userKeys []nks.Keyset
+	var providerKeys []nks.Keyset
 
 	for _, c := range keysets {
 		if category == "provider" {
@@ -92,14 +92,14 @@ func dataSourceNKSKeysetsRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if len(providerKeys) > 0 {
-		var subKeys []stackpointio.Keyset
+		var subKeys []nks.Keyset
 		for _, p := range providerKeys {
 			if entity == p.Entity {
 				subKeys = append(subKeys, p)
 			}
 		}
 		if name != "" {
-			var newKeys []stackpointio.Keyset
+			var newKeys []nks.Keyset
 			for _, p := range subKeys {
 				if strings.Contains(strings.ToLower(p.Name), strings.ToLower(name)) {
 					newKeys = append(newKeys, p)
@@ -116,7 +116,7 @@ func dataSourceNKSKeysetsRead(d *schema.ResourceData, meta interface{}) error {
 		return nil
 	}
 	if len(userKeys) > 0 {
-		var subKeys []stackpointio.Keyset
+		var subKeys []nks.Keyset
 		if name != "" {
 			for _, u := range userKeys {
 				if strings.Contains(strings.ToLower(u.Name), strings.ToLower(name)) {
