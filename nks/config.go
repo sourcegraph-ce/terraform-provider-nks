@@ -1,7 +1,7 @@
 package nks
 
 import (
-	"github.com/StackPointCloud/nks-sdk-go/nks"
+	"github.com/NetApp/nks-sdk-go/nks"
 )
 
 type Config struct {

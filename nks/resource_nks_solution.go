@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/StackPointCloud/nks-sdk-go/nks"
+	"github.com/NetApp/nks-sdk-go/nks"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -49,6 +49,10 @@ func resourceNKSSolution() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
+			"keyset": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -81,6 +85,10 @@ func resourceNKSSolutionCreate(d *schema.ResourceData, meta interface{}) error {
 			Solution: d.Get("solution").(string),
 			State:    "draft",
 		}
+		if temp, ok := d.GetOk("keyset"); ok {
+			newSolution.Keyset = temp.(int)
+		}
+
 		solution, err = config.Client.AddSolution(orgID, clusterID, newSolution)
 		if err != nil {
 			log.Printf("[DEBUG] Solution %s create failed to add solution from name: %s\n", d.Get("name").(string), err)

@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/StackPointCloud/nks-sdk-go/nks"
+	"github.com/NetApp/nks-sdk-go/nks"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -80,6 +80,10 @@ func resourceNKSMasterNode() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
+			"root_disk_size": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -89,6 +93,7 @@ func resourceNKSMasterNodeCreate(d *schema.ResourceData, meta interface{}) error
 	config := meta.(*Config)
 	clusterID := d.Get("cluster_id").(int)
 	orgID := d.Get("org_id").(int)
+	rootDiskSize := d.Get("root_disk_size").(int)
 
 	// Set up new master node
 	newNode := nks.NodeAdd{
@@ -96,6 +101,11 @@ func resourceNKSMasterNodeCreate(d *schema.ResourceData, meta interface{}) error
 		Role:  "master",
 		Size:  d.Get("node_size").(string),
 	}
+
+	if rootDiskSize > 0 {
+		newNode.RootDiskSize = rootDiskSize
+	}
+
 	if d.Get("provider_code").(string) == "aws" {
 		if _, ok := d.GetOk("zone"); !ok {
 			return fmt.Errorf("NKS needs zone for AWS clusters.")
