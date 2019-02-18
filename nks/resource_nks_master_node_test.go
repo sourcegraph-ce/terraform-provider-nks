@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/StackPointCloud/nks-sdk-go/nks"
+	"github.com/NetApp/nks-sdk-go/nks"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )

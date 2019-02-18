@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/StackPointCloud/nks-sdk-go/nks"
+	"github.com/NetApp/nks-sdk-go/nks"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -40,7 +40,7 @@ func resourceNKSCluster() *schema.Resource {
 			},
 			"startup_master_size": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"startup_worker_count": {
 				Type:     schema.TypeInt,
@@ -49,6 +49,14 @@ func resourceNKSCluster() *schema.Resource {
 			"startup_worker_size": {
 				Type:     schema.TypeString,
 				Required: true,
+			},
+			"startup_worker_min_count": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"startup_worker_max_count": {
+				Type:     schema.TypeInt,
+				Optional: true,
 			},
 			"rbac_enabled": {
 				Type:     schema.TypeBool,
@@ -161,6 +169,58 @@ func resourceNKSCluster() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
+			"nodes": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"instance_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"public_ip": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"private_ip": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+			"network_component": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cidr": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"component_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"vpc_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"zone": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"provider_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -170,14 +230,13 @@ func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	orgID := d.Get("org_id").(int)
 	sshKeyID := d.Get("ssh_keyset").(int)
+	providerCode := d.Get("provider_code").(string)
 
 	// Set up cluster structure based on input from user
 	newCluster := nks.Cluster{
 		Name:              d.Get("cluster_name").(string),
 		Provider:          d.Get("provider_code").(string),
 		ProviderKey:       d.Get("provider_keyset").(int),
-		MasterCount:       1,
-		MasterSize:        d.Get("startup_master_size").(string),
 		WorkerCount:       d.Get("startup_worker_count").(int),
 		WorkerSize:        d.Get("startup_worker_size").(string),
 		KubernetesVersion: d.Get("k8s_version").(string),
@@ -188,7 +247,38 @@ func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 		Channel:           d.Get("channel").(string),
 		SSHKeySet:         sshKeyID,
 		Solutions:         []nks.Solution{}, // helm_tiller will get automatically installed
+		NetworkComponents: []nks.NetworkComponent{},
 	}
+
+	if providerCode == "aws" || providerCode == "azure" || providerCode == "gce" || providerCode == "gke" {
+		newCluster.MasterCount = 1
+		newCluster.MasterSize = d.Get("startup_master_size").(string)
+	}
+
+	if providerCode == "eks" {
+		if _, ok := d.GetOk("startup_worker_min_count"); !ok {
+			return fmt.Errorf("NKS needs min node number")
+		}
+		newCluster.MinNodeCount = d.Get("startup_worker_min_count").(int)
+
+		if _, ok := d.GetOk("startup_worker_max_count"); !ok {
+			return fmt.Errorf("NKS needs max node number")
+		}
+		newCluster.MaxNodeCount = d.Get("startup_worker_max_count").(int)
+
+		// Allow user to submit values for provider_network_id_requested, and put real value in computed provider_network_id
+		if _, ok := d.GetOk("provider_network_id_requested"); !ok {
+			newCluster.ProviderNetworkID = "__new__"
+		} else {
+			newCluster.ProviderNetworkID = d.Get("provider_network_id_requested").(string)
+		}
+		if _, ok := d.GetOk("provider_network_cidr"); !ok {
+			newCluster.ProviderNetworkCdr = "10.0.0.0/16"
+		} else {
+			newCluster.ProviderNetworkCdr = d.Get("provider_network_cidr").(string)
+		}
+	}
+
 	// Grab provider-specific fields
 	if d.Get("provider_code").(string) == "aws" {
 		if _, ok := d.GetOk("region"); !ok {
@@ -270,6 +360,35 @@ func resourceNKSClusterCreate(d *schema.ResourceData, meta interface{}) error {
 		newCluster.Region = d.Get("region").(string)
 		newCluster.ProjectID = d.Get("project_id").(string)
 	}
+
+	if _, ok := d.GetOk("region"); !ok {
+		return fmt.Errorf("NKS needs region for clusters.")
+	}
+	newCluster.Region = d.Get("region").(string)
+
+	//Network Components
+	if vRaw, ok := d.GetOk("network_component"); ok {
+		componentRaw := vRaw.(*schema.Set).List()
+		for _, raw := range componentRaw {
+			rawMap := raw.(map[string]interface{})
+			if rawMap["id"] == nil || rawMap["cidr"] == nil || rawMap["component_type"] == nil || rawMap["provider_id"] == nil || rawMap["vpc_id"] == nil || rawMap["zone"] == nil {
+				return fmt.Errorf("Required fields for network component are id, cidr, component_type, provider_id, vpc_id, zone")
+			}
+			netComponent := nks.NetworkComponent{
+				ID:            rawMap["id"].(string),
+				Cidr:          rawMap["cidr"].(string),
+				ComponentType: rawMap["component_type"].(string),
+				ProviderID:    rawMap["provider_id"].(string),
+				VpcID:         rawMap["vpc_id"].(string),
+				Zone:          rawMap["zone"].(string),
+			}
+			if rawMap["name"] != nil {
+				netComponent.Name = rawMap["name"].(string)
+			}
+			newCluster.NetworkComponents = append(newCluster.NetworkComponents, netComponent)
+		}
+	}
+
 	// Do cluster creation call
 	cluster, err := config.Client.CreateCluster(orgID, newCluster)
 
@@ -317,6 +436,27 @@ func resourceNKSClusterRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		return err
 	}
+	nodes, err := config.Client.GetNodes(orgID, clusterID)
+	if err != nil {
+		return err
+	}
+
+	rawNodes := make([]map[string]interface{}, len(nodes))
+
+	for i, n := range nodes {
+		rawNode := map[string]interface{}{
+			"instance_id": n.InstanceID,
+			"public_ip":   n.PublicIP,
+			"private_ip":  n.PrivateIP,
+		}
+
+		rawNodes[i] = rawNode
+	}
+
+	if err := d.Set("nodes", rawNodes); err != nil {
+		return err
+	}
+
 	d.Set("state", cluster.State)
 	d.Set("instanceID", cluster.InstanceID)
 	d.Set("cluster_name", cluster.Name)

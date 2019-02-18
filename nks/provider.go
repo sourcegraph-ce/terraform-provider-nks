@@ -3,7 +3,7 @@ package nks
 import (
 	"time"
 
-	"github.com/StackPointCloud/nks-sdk-go/nks"
+	"github.com/NetApp/nks-sdk-go/nks"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -31,11 +31,15 @@ func Provider() terraform.ResourceProvider {
 			"nks_master_node": resourceNKSMasterNode(),
 			"nks_nodepool":    resourceNKSNodePool(),
 			"nks_solution":    resourceNKSSolution(),
+			"nks_keyset":      resourceNKSKeyset(),
+			"nks_workspace":   resourceNKSWorkspace(),
+			"nks_istio_mesh":  resourceNKSIstioMesh(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"nks_instance_specs": dataSourceNKSInstanceSpecs(),
 			"nks_keyset":         dataSourceNKSKeyset(),
 			"nks_organization":   dataSourceNKSOrganization(),
+			"nks_workspace":      dataSourceNKSWorkspace(),
 		},
 		ConfigureFunc: providerConfigure,
 	}
