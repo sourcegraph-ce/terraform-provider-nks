@@ -1,4 +1,4 @@
-module github.com/NetApp/terraform-provider-nks
+module github.com/terraform-providers/terraform-provider-nks
 
 require (
 	github.com/NetApp/nks-sdk-go v2.0.8+incompatible

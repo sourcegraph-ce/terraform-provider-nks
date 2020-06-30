@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/NetApp/terraform-provider-nks/nks"
+	"github.com/terraform-providers/terraform-provider-nks/nks"
 	"github.com/hashicorp/terraform/plugin"
 )
 
