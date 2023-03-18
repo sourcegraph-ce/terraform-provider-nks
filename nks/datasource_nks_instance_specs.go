@@ -2,7 +2,7 @@ package nks
 
 import (
 	"fmt"
-	"log"
+	log "github.com/sourcegraph-ce/logrus"
 
 	"github.com/NetApp/nks-sdk-go/nks"
 	"github.com/hashicorp/terraform/helper/schema"

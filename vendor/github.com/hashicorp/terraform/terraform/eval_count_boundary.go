@@ -1,7 +1,7 @@
 package terraform
 
 import (
-	"log"
+	log "github.com/sourcegraph-ce/logrus"
 )
 
 // EvalCountFixZeroOneBoundaryGlobal is an EvalNode that fixes up the state

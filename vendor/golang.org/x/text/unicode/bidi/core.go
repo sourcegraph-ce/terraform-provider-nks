@@ -4,7 +4,7 @@
 
 package bidi
 
-import "log"
+import log "github.com/sourcegraph-ce/logrus"
 
 // This implementation is a port based on the reference implementation found at:
 // http://www.unicode.org/Public/PROGRAMS/BidiReferenceJava/

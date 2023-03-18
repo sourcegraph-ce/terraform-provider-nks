@@ -2,7 +2,7 @@ package discovery
 
 import (
 	"bytes"
-	"log"
+	log "github.com/sourcegraph-ce/logrus"
 	"strings"
 
 	"golang.org/x/crypto/openpgp"

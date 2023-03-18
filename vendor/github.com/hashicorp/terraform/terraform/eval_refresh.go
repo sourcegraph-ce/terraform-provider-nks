@@ -2,7 +2,7 @@ package terraform
 
 import (
 	"fmt"
-	"log"
+	log "github.com/sourcegraph-ce/logrus"
 )
 
 // EvalRefresh is an EvalNode implementation that does a refresh for
