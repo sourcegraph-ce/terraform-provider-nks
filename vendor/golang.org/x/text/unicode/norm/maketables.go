@@ -15,7 +15,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
+	log "github.com/sourcegraph-ce/logrus"
 	"sort"
 	"strconv"
 	"strings"
