@@ -3,7 +3,7 @@ package terraform
 import (
 	"errors"
 	"fmt"
-	"log"
+	log "github.com/sourcegraph-ce/logrus"
 	"sync"
 
 	"github.com/hashicorp/terraform/config"

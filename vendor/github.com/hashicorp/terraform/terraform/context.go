@@ -3,7 +3,7 @@ package terraform
 import (
 	"context"
 	"fmt"
-	"log"
+	log "github.com/sourcegraph-ce/logrus"
 	"sort"
 	"strings"
 	"sync"
